@@ -869,6 +869,7 @@ html.day-mode .due-box { background: #f1e4d8; border-color: rgba(168,100,74,.55)
             <button type="button" class="jump-btn" data-target="notes" onclick="switchTab('notes')" title="Notes"><span class="ic">📝</span><span class="lbl">Notes</span></button>
             <button type="button" class="jump-btn" data-target="ai" onclick="switchTab('ai')" title="AI Study Assistant"><span class="ic">🧭</span><span class="lbl">AI Assistant</span></button>
             <button type="button" class="jump-btn" data-target="quiz" onclick="switchTab('quiz')" title="Quiz Arena"><span class="ic">🎯</span><span class="lbl">Quiz</span></button>
+            <button type="button" class="jump-btn" data-target="game" onclick="switchTab('game')" title="Sovereign Roll"><span class="ic">🎲</span><span class="lbl">Game</span></button>
             <button type="button" class="jump-btn round" data-target="about" onclick="switchTab('about')" title="About" aria-label="About">?</button>
         </nav>
         <div class="tb-actions">
@@ -922,7 +923,7 @@ html.day-mode .due-box { background: #f1e4d8; border-color: rgba(168,100,74,.55)
             <div class="holo-card border-glow-magenta rounded-3xl p-6 md:p-8 space-y-3">
                 <h2 class="font-cyber text-2xl md:text-3xl font-black text-white">📖 HOW TO USE THIS SITE</h2>
                 <p class="text-sm text-slate-300">A study planner, grade tracker and flashcard trainer in one page. It takes about two minutes to set up.</p>
-                <p class="text-sm font-bold text-[#00f0ff]">🎮 Want a break? Click the <span class="inline-grid place-items-center w-6 h-6 rounded-full border border-[#00f0ff] align-middle">?</span> button at the far right of the glowing top bar, then click the big glowing red ? box in that section to unlock the educational game. No code needed.</p>
+                <p class="text-sm font-bold text-[#00f0ff]">🎮 Want a break? Click the <span class="inline-grid place-items-center w-6 h-6 rounded-full border border-[#00f0ff] align-middle">?</span> Game button on the glowing top bar to get to the educational game. No code needed.</p>
             </div>
             <div class="holo-card rounded-3xl p-6 md:p-8 space-y-3" style="border:2px solid #fbbf24">
                 <h3 class="font-cyber text-lg font-black text-[#fbbf24]">⚠ YOUR DATA STAYS ON THIS COMPUTER</h3>
@@ -954,7 +955,7 @@ html.day-mode .due-box { background: #f1e4d8; border-color: rgba(168,100,74,.55)
                     <p><strong class="text-white">📅 Calendar:</strong> a calendar of everything that is due.</p>
                     <p><strong class="text-white">🧭 AI Study Assistant:</strong> the study-sheet analyzer and the study chat now live together. Paste a sheet on the left and the AI tells you what to study first and what to do next (it can also turn the sheet into flashcards). Ask the tutor about any topic on the right.</p>
                     <p><strong class="text-white">🎯 Quiz Arena:</strong> quick practice quizzes.</p>
-                    <p><strong class="text-white">🎮 Educational Game:</strong> click the round <strong class="text-white">?</strong> button at the far right of the top bar, then click the <strong class="text-white">big glowing red ? box</strong> in that section (no code needed). It unlocks the game section, where you can download and play Sovereign Roll, a strategy board game of diplomacy and resources.</p>
+                    <p><strong class="text-white">🎮 Educational Game:</strong> click the <strong class="text-white">🎲 Game</strong> button on the top bar (no code needed). It takes you to the game section, where you can download and play Sovereign Roll, a strategy board game of diplomacy and resources.</p>
                     <p><strong class="text-white">🧭 Getting around:</strong> the whole site is one long page. Use the buttons on the glowing top bar to jump to any section, the <strong class="text-white">▲ ▼</strong> arrows on the right edge to move one section at a time, and the <strong class="text-white">🌙 Dark / ☀ Light</strong> switch to change the look. Scroll down fast and a <em>Jump to top</em> button appears.</p>
                     <p><strong class="text-white">🔔 Reminders:</strong> click <em>Enable notifications</em> (top of the page) and your computer pops up a reminder 1 day before each assessment. The bar goes away once you have clicked it.</p>
                 </div>
@@ -1387,6 +1388,24 @@ html.day-mode .due-box { background: #f1e4d8; border-color: rgba(168,100,74,.55)
             </div>
         </section>
 
+        <section id="panel-game" class="page-section tab-panel space-y-6" data-icon="🎲" data-title="Sovereign Roll">
+            <div class="holo-card border-glow-cyan rounded-3xl p-6 md:p-10 space-y-6">
+                <div>
+                    <span class="px-3 py-1 rounded-full bg-[#00f0ff]/15 border border-[#00f0ff]/50 text-[#00f0ff] text-xs font-bold uppercase tracking-widest">Educational Game</span>
+                    <h2 class="font-cyber text-3xl md:text-4xl font-black text-white mt-3">🎲 SOVEREIGN ROLL</h2>
+                    <p class="text-sm md:text-base text-slate-300 mt-2 max-w-3xl">A strategy board game of global diplomacy, resource management and high-stakes dice rolling. Lead your nation through crises and campaigns.</p>
+                </div>
+                <div class="p-6 rounded-3xl bg-slate-950/70 border border-[#00f0ff]/30 text-center space-y-4">
+                    <a href="https://sovereignroll.vercel.app/" target="_blank" rel="noopener" class="sr-download">▶ Click here to open the game</a>
+                    <p class="text-sm font-bold text-slate-300">or</p>
+                    <button id="srDownloadBtn" onclick="downloadSovereignRoll()" class="sr-download">⬇ Download it instead</button>
+                    <p id="srStatus" class="text-sm text-slate-300">Downloads <strong class="text-white">sovereign-roll-v3.2.0.html</strong> and opens the game in a new tab.</p>
+                    <a id="srOpenLink" href="#" target="_blank" rel="noopener" class="hidden text-sm font-bold text-[#00ff9d] underline">▶ Open Sovereign Roll</a>
+                </div>
+                <p class="text-xs text-slate-500">The game is one HTML file. After downloading, you can also open it any time by double-clicking it in your Downloads folder.</p>
+            </div>
+        </section>
+
         <section id="panel-about" class="page-section tab-panel space-y-6" data-icon="?" data-title="About">
             <div class="max-w-2xl mx-auto holo-card border-glow-magenta rounded-3xl p-8 md:p-10 text-center space-y-6">
                 <div class="w-24 h-24 mx-auto rounded-3xl bg-[#ff007f]/20 border-2 border-[#ff007f] flex items-center justify-center font-cyber text-5xl font-black text-[#ff007f] cursor-pointer shadow-[0_0_35px_rgba(255,0,127,0.6)] hover:scale-110 transition" title="Click me" role="button" tabindex="0" onclick="switchTab('game')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();switchTab('game')}">
@@ -1399,22 +1418,6 @@ html.day-mode .due-box { background: #f1e4d8; border-color: rgba(168,100,74,.55)
                 <div class="pt-6 border-t border-slate-800 text-xs text-slate-400 font-semibold">
                     © 2026 Academic Tracker — Daily Practice Hub. All Rights Reserved.
                 </div>
-            </div>
-        </section>
-
-        <section id="panel-game" class="page-section tab-panel space-y-6 hidden" data-icon="🎲" data-title="Sovereign Roll">
-            <div class="holo-card border-glow-cyan rounded-3xl p-6 md:p-10 space-y-6">
-                <div>
-                    <span class="px-3 py-1 rounded-full bg-[#00f0ff]/15 border border-[#00f0ff]/50 text-[#00f0ff] text-xs font-bold uppercase tracking-widest">Educational Game · you found it behind the ? box</span>
-                    <h2 class="font-cyber text-3xl md:text-4xl font-black text-white mt-3">🎲 SOVEREIGN ROLL</h2>
-                    <p class="text-sm md:text-base text-slate-300 mt-2 max-w-3xl">A strategy board game of global diplomacy, resource management and high-stakes dice rolling. Lead your nation through crises and campaigns.</p>
-                </div>
-                <div class="p-6 rounded-3xl bg-slate-950/70 border border-[#00f0ff]/30 text-center space-y-4">
-                    <button id="srDownloadBtn" onclick="downloadSovereignRoll()" class="sr-download">⬇ Click this button to download</button>
-                    <p id="srStatus" class="text-sm text-slate-300">Downloads <strong class="text-white">sovereign-roll-v3.2.0.html</strong> and opens the game in a new tab.</p>
-                    <a id="srOpenLink" href="#" target="_blank" rel="noopener" class="hidden text-sm font-bold text-[#00ff9d] underline">▶ Open Sovereign Roll</a>
-                </div>
-                <p class="text-xs text-slate-500">The game is one HTML file. After downloading, you can also open it any time by double-clicking it in your Downloads folder.</p>
             </div>
         </section>
 
