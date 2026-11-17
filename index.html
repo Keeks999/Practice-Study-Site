@@ -845,6 +845,33 @@ html.day-mode .due-box { background: #f1e4d8; border-color: rgba(168,100,74,.55)
 .jump-btn .ic { font-size: 1.05rem; }
 .jump-btn .lbl { display: block !important; font-size: .66rem; font-weight: 700; letter-spacing: .01em; line-height: 1.1; }
 .jump-btn.round { height: 36px; min-width: 36px; }
+
+/* ---- device setup: laptop / Chromebook and tablet / phone ---- */
+.dev-opt { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: 1.1rem .8rem; border-radius: 16px; text-align: center; cursor: pointer; border: 1.5px solid var(--line); background: rgba(148,163,184,.07); color: var(--text-main); transition: all .15s ease; }
+.dev-opt span { font-size: 2rem; line-height: 1; } .dev-opt b { font-size: .95rem; } .dev-opt small { font-size: .75rem; color: var(--text-muted); }
+.dev-opt:hover, .dev-opt.on { border-color: #a78bfa; background: rgba(167,139,250,.16); }
+html.day-mode .dev-opt:hover, html.day-mode .dev-opt.on { border-color: #1f4d3a; background: rgba(31,77,58,.1); }
+
+html.dev-laptop .topbar { gap: .5rem; padding: 0 10px; }
+html.dev-laptop .tb-title { font-size: .8rem; letter-spacing: .03em; }
+html.dev-laptop .tb-badge { display: none; }
+html.dev-laptop .tb-logo { width: 34px; height: 34px; }
+html.dev-laptop .jump-btn { flex-direction: row; height: 40px; min-width: 40px; padding: 0 .6rem; justify-content: center; gap: .35rem; }
+html.dev-laptop .jump-btn .lbl { display: none !important; }
+html.dev-laptop .jump-btn.is-active .lbl { display: inline !important; font-size: .78rem; }
+html.dev-laptop .tb-toggle .opt b { display: none; }
+html.dev-laptop .tb-toggle .opt { padding: .34rem .6rem; }
+html.dev-laptop .tb-menu-btn { width: 36px; height: 36px; }
+
+html.dev-small .topbar { height: auto; flex-wrap: wrap; padding: 8px 10px; gap: .4rem .6rem; }
+html.dev-small .tb-brand { order: 1; } html.dev-small .tb-actions { order: 2; margin-left: auto; }
+html.dev-small .tb-nav { order: 3; flex: 1 1 100%; justify-content: flex-start; padding-bottom: 2px; }
+html.dev-small .tb-title { font-size: .78rem; } html.dev-small .tb-badge { display: none; }
+html.dev-small .tb-toggle .opt b { display: none; }
+html.dev-small #sideRail #railDots { display: none; }
+html.dev-small .page-section, html.dev-small section.page-section:nth-of-type(even) { margin: 12px 8px; padding: 18px 14px; }
+html.dev-small .rail-arrow { width: 36px; height: 36px; }
+html.dev-small #sideRail { right: 6px; }
     </style>
 </head>
 <body class="min-h-screen selection:bg-[#00f0ff] selection:text-slate-950">
@@ -874,7 +901,7 @@ html.day-mode .due-box { background: #f1e4d8; border-color: rgba(168,100,74,.55)
         </nav>
         <div class="tb-actions">
             <button type="button" id="modeToggleBtn" class="tb-toggle" onclick="toggleDayNightMode()" title="Switch between dark and light mode" aria-label="Switch between dark and light mode">
-                <span class="opt opt-dark">🌙 Dark</span><span class="opt opt-light">☀ Light</span>
+                <span class="opt opt-dark">🌙<b> Dark</b></span><span class="opt opt-light">☀<b> Light</b></span>
             </button>
             <div class="tb-menu" id="barMenu">
                 <button type="button" id="barMenuBtn" class="tb-menu-btn" onclick="toggleBarMenu()" aria-haspopup="true" aria-expanded="false" title="Backup, restore and more">⋯</button>
@@ -882,6 +909,7 @@ html.day-mode .due-box { background: #f1e4d8; border-color: rgba(168,100,74,.55)
                     <button type="button" role="menuitem" onclick="toggleBarMenu(false);exportBackup()">⬇ Download backup</button>
                     <button type="button" role="menuitem" onclick="toggleBarMenu(false);document.getElementById('importFileInput').click()">⬆ Restore from backup</button>
                     <button type="button" role="menuitem" onclick="toggleBarMenu(false);downloadStandaloneHtml()">💾 Save index.html</button>
+                    <button type="button" role="menuitem" onclick="toggleBarMenu(false);openDevicePicker()">🖥 Change screen size / device</button>
                     <button type="button" role="menuitem" class="danger" onclick="toggleBarMenu(false);resetEverythingToZero()">↺ Reset assessments &amp; grades</button>
                     <p>Your data stays on this computer only. Use Backup to keep it or move it.</p>
                 </div>
@@ -896,6 +924,21 @@ html.day-mode .due-box { background: #f1e4d8; border-color: rgba(168,100,74,.55)
         <button type="button" id="railDown" class="rail-arrow" onclick="stepSection(1)" title="Next section" aria-label="Next section">▼</button>
     </aside>
     <button type="button" id="toTopBtn" onclick="scrollToTop()" aria-label="Jump to top">↑ Jump to top</button>
+
+    <!-- FIRST-RUN SETUP: what are you using? -->
+    <div id="deviceModal" class="fixed inset-0 z-[70] hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="deviceTitle">
+        <div class="holo-card rounded-3xl p-6 md:p-8 max-w-2xl w-full space-y-5">
+            <div>
+                <h3 id="deviceTitle" class="font-cyber text-xl font-black text-white">Quick setup: what are you using?</h3>
+                <p class="text-sm text-slate-300 mt-1">This makes the top bar fit your screen. You can change it any time from the ⋯ menu.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button type="button" class="dev-opt" data-dev="desktop" onclick="setDevice('desktop')"><span>🖥️</span><b>Big monitor</b><small>Desktop or wide / curved screen</small></button>
+                <button type="button" class="dev-opt" data-dev="laptop" onclick="setDevice('laptop')"><span>💻</span><b>Laptop / Chromebook</b><small>Smaller screen, compact bar</small></button>
+                <button type="button" class="dev-opt" data-dev="small" onclick="setDevice('small')"><span>📱</span><b>Tablet / phone</b><small>Bar wraps onto two rows</small></button>
+            </div>
+        </div>
+    </div>
 
     <!-- MAIN APPLICATION SHELL: one seamless vertical page -->
     <div id="mainAppShell" class="app-shell">
@@ -923,7 +966,7 @@ html.day-mode .due-box { background: #f1e4d8; border-color: rgba(168,100,74,.55)
             <div class="holo-card border-glow-magenta rounded-3xl p-6 md:p-8 space-y-3">
                 <h2 class="font-cyber text-2xl md:text-3xl font-black text-white">📖 HOW TO USE THIS SITE</h2>
                 <p class="text-sm text-slate-300">A study planner, grade tracker and flashcard trainer in one page. It takes about two minutes to set up.</p>
-                <p class="text-sm font-bold text-[#00f0ff]">🎮 Want a break? Click the <span class="inline-grid place-items-center w-6 h-6 rounded-full border border-[#00f0ff] align-middle">?</span> Game button on the glowing top bar to get to the educational game. No code needed.</p>
+                <p class="text-sm font-bold text-[#00f0ff]">🎮 Want a break? Click the 🎲 Game button on the glowing top bar to get to the educational game. No code needed.</p>
             </div>
             <div class="holo-card rounded-3xl p-6 md:p-8 space-y-3" style="border:2px solid #fbbf24">
                 <h3 class="font-cyber text-lg font-black text-[#fbbf24]">⚠ YOUR DATA STAYS ON THIS COMPUTER</h3>
@@ -3032,6 +3075,7 @@ Rules:
         document.addEventListener('mouseover', e => { cdHover = !!(e.target.closest && e.target.closest('#cdStudy')); });
 
         function initNav() {
+            initDevice();
             initReveal();
             // a link like index.html#grades opens straight at that section
             const hs = (location.hash || '').replace('#', ''), target = hs && document.getElementById('panel-' + (TAB_ALIAS[hs] || hs));
@@ -3062,6 +3106,27 @@ Rules:
                     else add(c, i % 2 ? 'from-r' : '');
                 });
             });
+        }
+
+        // ---------- DEVICE SETUP (big monitor / laptop & Chromebook / tablet & phone) ----------
+        function deviceSaved() { try { return localStorage.getItem('hub_device') || ''; } catch (e) { return ''; } }
+        function deviceAuto() { const w = window.innerWidth; return w < 800 ? 'small' : (w < 1500 ? 'laptop' : 'desktop'); }
+        function applyDevice(d) {
+            const r = document.documentElement;
+            r.classList.remove('dev-laptop', 'dev-small');
+            if (d === 'laptop') r.classList.add('dev-laptop'); else if (d === 'small') r.classList.add('dev-small');
+            document.querySelectorAll('.dev-opt').forEach(b => b.classList.toggle('on', b.dataset.dev === d));
+            curIdx = -1; queueSpy();
+        }
+        function setDevice(d) {
+            try { localStorage.setItem('hub_device', d); } catch (e) {}
+            applyDevice(d); document.getElementById('deviceModal').classList.add('hidden');
+        }
+        function openDevicePicker() { applyDevice(deviceSaved() || deviceAuto()); document.getElementById('deviceModal').classList.remove('hidden'); }
+        function initDevice() {
+            const saved = deviceSaved();
+            applyDevice(saved || deviceAuto());
+            if (!saved) document.getElementById('deviceModal').classList.remove('hidden');
         }
         // STUDY CHAT: searches the web, then summarizes what it finds (with the free AI when available, otherwise by picking the key sentences)
         async function webSearchPages(topic) {
