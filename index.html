@@ -6,7 +6,7 @@
     <title>Academic Tracker — Daily Practice Hub · Study Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>if (/^https?:$/.test(location.protocol)) document.write('<script src="https://js.puter.com/v2/"><\/script>');</script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-primary: #030712;
@@ -609,19 +609,6 @@ section.page-section:nth-of-type(even) { background: rgba(148, 163, 184, 0.045);
 #panel-about > .sec-eyebrow, #panel-game > .sec-eyebrow { align-self: stretch; }
 #panel-howto > .holo-card { width: 100%; }
 
-/* focus timer: spread across the width on big screens */
-@media (min-width: 1100px) {
-    #panel-timer > div:not(.sec-eyebrow) {
-        max-width: none; display: grid; grid-template-columns: 1fr 340px 1fr; column-gap: 3rem; align-items: center; text-align: left; padding: 3rem 4rem;
-    }
-    #panel-timer > div:not(.sec-eyebrow) > * { margin: 0 !important; }
-    #panel-timer > div:not(.sec-eyebrow) > :nth-child(1) { grid-column: 1; grid-row: 1; }
-    #panel-timer > div:not(.sec-eyebrow) > :nth-child(2) { grid-column: 1; grid-row: 2; justify-content: flex-start; margin-top: 1.5rem !important; }
-    #panel-timer > div:not(.sec-eyebrow) > :nth-child(5) { grid-column: 1; grid-row: 3; margin-top: 1.5rem !important; }
-    #panel-timer > div:not(.sec-eyebrow) > :nth-child(3) { grid-column: 2; grid-row: 1 / 4; }
-    #panel-timer > div:not(.sec-eyebrow) > :nth-child(4) { grid-column: 3; grid-row: 1 / 4; flex-direction: column; align-items: stretch; max-width: 280px; justify-self: center; gap: 1rem; }
-}
-
 /* ---------- AI study assistant (analyzer + chat in one) ---------- */
 #aiChat { height: min(80vh, 860px); min-height: 540px; position: sticky; top: 84px; }
 @media (max-width: 1279px) { #aiChat { position: relative; top: 0; } }
@@ -872,6 +859,436 @@ html.dev-small #sideRail #railDots { display: none; }
 html.dev-small .page-section, html.dev-small section.page-section:nth-of-type(even) { margin: 12px 8px; padding: 18px 14px; }
 html.dev-small .rail-arrow { width: 36px; height: 36px; }
 html.dev-small #sideRail { right: 6px; }
+    
+/* =====================================================================
+   REVAMP: calm assessments + grades (IB 0-7), notes layout, richer light mode
+   ===================================================================== */
+:root {
+    --c-surface: #121a2c; --c-surface2: #0d1423; --c-line: rgba(148,163,184,.17); --c-ink: #e8edf7; --c-mute: #93a0b7;
+    --c-shadow: 0 14px 34px -22px rgba(0,0,0,.85);
+    --hi: #e58a78; --mid: #e0b254; --lo: #6fc29a;
+}
+html.day-mode {
+    --c-surface: #f9f3e7; --c-surface2: #f1e8d8; --c-line: rgba(31,77,58,.15); --c-ink: #1c2a22; --c-mute: #5b695f;
+    --c-shadow: 0 1px 2px rgba(60,45,20,.05), 0 16px 32px -24px rgba(60,45,20,.38);
+    --hi: #a8432f; --mid: #94680f; --lo: #2d6a4f;
+}
+section#panel-assessments.page-section, section#panel-grades.page-section { --frame: #64748b; --accent: #9db4e6; }
+html.day-mode section#panel-assessments.page-section, html.day-mode section#panel-grades.page-section { --accent: #1f4d3a; }
+
+.sec-title { font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: clamp(1.7rem, 2.3vw, 2.25rem); line-height: 1.15; color: var(--c-ink); letter-spacing: -.01em; }
+.sec-h3 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; font-size: 1.3rem; color: var(--c-ink); }
+.sec-sub { color: var(--c-mute); font-size: .95rem; margin-top: .3rem; max-width: 56rem; }
+.rv-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+.rv-head--sm { margin-top: .75rem; }
+#panel-assessments .btn-primary, #panel-grades .btn-primary, .m-card .btn-primary, .as-empty .btn-primary, .gr-empty .btn-primary { background: linear-gradient(135deg, #5f7fd0, #7a68c4); color: #fff; padding: .7rem 1.15rem; border-radius: 12px; font-size: .86rem; box-shadow: 0 8px 20px -12px rgba(95,127,208,.8); }
+#panel-assessments .btn-ghost, #panel-grades .btn-ghost { color: var(--c-ink); border-color: var(--c-line); }
+.hidden { display: none; }
+
+/* ---- assessments ---- */
+.as-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (min-width: 1100px) { .as-stats { grid-template-columns: 2.2fr repeat(4, minmax(0, 1fr)); } }
+.as-stat { position: relative; padding: 18px 20px; border-radius: 20px; background: var(--c-surface); border: 1px solid var(--c-line); box-shadow: var(--c-shadow); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.as-stat .k { font-size: .72rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--c-mute); display: flex; align-items: center; gap: .45rem; }
+.as-stat[style*="--c"] .k::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.as-stat b { font-family: 'Fraunces', Georgia, serif; font-size: 2.1rem; line-height: 1.1; color: var(--c, var(--c-ink)); }
+.as-stat small { color: var(--c-mute); font-size: .82rem; }
+.as-stat--next b { font-size: 1.35rem; color: var(--c-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-top: .25rem; }
+
+.as-subjects { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.sj-card { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 20px; border: 1px solid color-mix(in srgb, var(--c) 26%, var(--c-line)); background: linear-gradient(135deg, color-mix(in srgb, var(--c) 11%, var(--c-surface)), var(--c-surface) 70%); box-shadow: var(--c-shadow); transition: transform .18s ease, box-shadow .18s ease; }
+.sj-card:hover { transform: translateY(-2px); }
+.sj-ic { width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font-size: 1.45rem; flex-shrink: 0; background: color-mix(in srgb, var(--c) 18%, transparent); }
+.sj-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.sj-txt b { font-size: 1.02rem; color: var(--c-ink); }
+.sj-txt small { color: var(--c-mute); font-size: .8rem; }
+.sj-links { display: flex; gap: .8rem; margin-top: .3rem; font-size: .78rem; }
+.sj-links a, .sj-links button { color: var(--c); font-weight: 700; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: none; }
+.sj-links button:last-child { color: var(--c-mute); font-weight: 600; }
+.sj-links a:hover, .sj-links button:hover { text-decoration: underline; }
+.sj-add { width: 38px; height: 38px; border-radius: 50%; font-size: 1.3rem; line-height: 1; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); border: 1px solid color-mix(in srgb, var(--c) 30%, transparent); cursor: pointer; flex-shrink: 0; }
+.sj-add:hover { background: color-mix(in srgb, var(--c) 26%, transparent); }
+
+.as-legend { display: flex; flex-wrap: wrap; gap: 1.1rem; font-size: .8rem; color: var(--c-mute); font-weight: 600; }
+.as-legend span::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--c); margin-right: .4rem; }
+.as-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 16px; }
+.as-card { display: grid; grid-template-columns: 70px 1fr; grid-template-areas: "date body" "act act"; gap: 14px 16px; padding: 18px; border-radius: 22px; background: var(--c-surface); border: 1px solid var(--c-line); box-shadow: var(--c-shadow); transition: transform .18s ease; }
+.as-card:hover { transform: translateY(-3px); }
+.as-card.lvl-high { background: linear-gradient(180deg, color-mix(in srgb, var(--hi) 8%, var(--c-surface)), var(--c-surface) 65%); --p: var(--hi); }
+.as-card.lvl-medium { --p: var(--mid); } .as-card.lvl-low { --p: var(--lo); }
+.as-card.is-done { opacity: .55; } .as-card.is-done h4 { text-decoration: line-through; }
+.as-date { grid-area: date; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 18px; padding: 10px 0; background: color-mix(in srgb, var(--c) 14%, var(--c-surface2)); }
+.as-date .m { font-size: .68rem; font-weight: 800; letter-spacing: .16em; color: var(--c); }
+.as-date .d { font-family: 'Fraunces', Georgia, serif; font-size: 1.9rem; font-weight: 700; line-height: 1.05; color: var(--c-ink); }
+.as-date .w { font-size: .72rem; color: var(--c-mute); font-weight: 600; }
+.as-body { grid-area: body; min-width: 0; }
+.as-top { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .35rem; }
+.as-subj { display: inline-flex; align-items: center; gap: .45rem; font-size: .8rem; font-weight: 700; color: var(--c-ink); }
+.as-subj i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); }
+.as-pill { padding: .18rem .7rem; border-radius: 999px; font-size: .74rem; font-weight: 800; color: var(--p); background: color-mix(in srgb, var(--p) 14%, transparent); white-space: nowrap; }
+.as-card h4 { font-size: 1.12rem; font-weight: 700; color: var(--c-ink); line-height: 1.3; }
+.as-meta { color: var(--c-mute); font-size: .82rem; margin-top: .2rem; }
+.as-actions { grid-area: act; display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--c-line); }
+.as-done { padding: .45rem .95rem; border-radius: 11px; font-size: .8rem; font-weight: 700; color: var(--lo); background: color-mix(in srgb, var(--lo) 12%, transparent); border: 1px solid color-mix(in srgb, var(--lo) 28%, transparent); cursor: pointer; }
+.as-done:hover { background: color-mix(in srgb, var(--lo) 22%, transparent); }
+.as-del { font-size: .8rem; font-weight: 700; color: var(--c-mute); background: none; border: 0; cursor: pointer; }
+.as-del:hover { color: var(--hi); }
+.as-empty, .gr-empty { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 18px; padding: 28px; border-radius: 22px; border: 1px dashed color-mix(in srgb, var(--c-mute) 40%, transparent); background: color-mix(in srgb, var(--c-ink) 3%, transparent); }
+.as-empty .ic, .gr-empty .ic { font-size: 2.4rem; }
+.as-empty > div:nth-child(2), .gr-empty > div:nth-child(2) { flex: 1; min-width: 220px; }
+.as-empty b, .gr-empty b { color: var(--c-ink); font-size: 1.05rem; } .as-empty p, .gr-empty p { color: var(--c-mute); font-size: .9rem; }
+.pri-badge { color: var(--p); border-color: transparent !important; background: color-mix(in srgb, var(--p) 14%, transparent); }
+.pri-badge.lvl-high { --p: var(--hi); } .pri-badge.lvl-medium { --p: var(--mid); } .pri-badge.lvl-low { --p: var(--lo); }
+
+/* ---- grades (IB 0-7) ---- */
+.gr-hero { display: grid; grid-template-columns: 170px minmax(240px, 1fr) minmax(320px, 1.4fr); gap: 30px; align-items: center; padding: 28px 32px; border-radius: 26px; border: 1px solid color-mix(in srgb, var(--t) 24%, var(--c-line)); background: linear-gradient(135deg, color-mix(in srgb, var(--t) 11%, var(--c-surface)), var(--c-surface) 65%); box-shadow: var(--c-shadow); }
+@media (max-width: 1100px) { .gr-hero { grid-template-columns: 150px 1fr; } .gr-tiles { grid-column: 1 / -1; } }
+.gr-ring { position: relative; width: 160px; height: 160px; }
+.gr-ring svg { width: 100%; height: 100%; }
+.gr-ring .trk { fill: none; stroke: color-mix(in srgb, var(--c-ink) 10%, transparent); stroke-width: 11; }
+.gr-ring .val { fill: none; stroke: var(--t); stroke-width: 11; stroke-linecap: round; transition: stroke-dasharray .8s ease; }
+.gr-ring-txt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.gr-ring-txt b { font-family: 'Fraunces', Georgia, serif; font-size: 2.3rem; line-height: 1; color: var(--c-ink); }
+.gr-ring-txt span { font-size: .72rem; color: var(--c-mute); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-top: 4px; }
+.gr-kicker { font-size: .72rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--c-mute); }
+.gr-hero-info h3 { font-family: 'Fraunces', Georgia, serif; font-size: 2rem; color: var(--t); line-height: 1.2; margin: .2rem 0 .3rem; }
+.gr-hero-info p { color: var(--c-mute); font-size: .9rem; margin-bottom: .9rem; } .gr-hero-info p b { color: var(--c-ink); }
+.gr-pips { display: flex; gap: 5px; }
+.gr-pips span { flex: 1; height: 8px; border-radius: 6px; background: color-mix(in srgb, var(--c-ink) 10%, transparent); overflow: hidden; }
+.gr-pips i { display: block; height: 100%; border-radius: 6px; background: var(--t, var(--c)); }
+.gr-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 700px) { .gr-tiles { grid-template-columns: 1fr; } }
+.gr-tile { padding: 14px 16px; border-radius: 16px; background: color-mix(in srgb, var(--c-ink) 4%, transparent); border: 1px solid var(--c-line); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.gr-tile .k { font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--c-mute); }
+.gr-tile b { font-family: 'Fraunces', Georgia, serif; font-size: 1.3rem; color: var(--c-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gr-tile small { color: var(--c-mute); font-size: .8rem; }
+
+.gr-subjects { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+.gr-subj { padding: 20px; border-radius: 22px; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 9%, var(--c-surface)), var(--c-surface) 60%); border: 1px solid color-mix(in srgb, var(--c) 22%, var(--c-line)); box-shadow: var(--c-shadow); display: flex; flex-direction: column; gap: 10px; transition: transform .18s ease; }
+.gr-subj:hover { transform: translateY(-3px); }
+.gr-subj .top { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.gr-subj .nm { display: inline-flex; align-items: center; gap: .6rem; font-weight: 700; color: var(--c-ink); min-width: 0; }
+.gr-subj .ic, .gr-goal .ic { width: 32px; height: 32px; border-radius: 10px; display: inline-grid; place-items: center; font-size: 1.05rem; background: color-mix(in srgb, var(--c) 18%, transparent); }
+.gr-chip { padding: .2rem .7rem; border-radius: 999px; font-size: .74rem; font-weight: 800; color: var(--t); background: color-mix(in srgb, var(--t) 14%, transparent); white-space: nowrap; }
+.gr-subj .avg { display: flex; align-items: baseline; gap: .4rem; }
+.gr-subj .avg b { font-family: 'Fraunces', Georgia, serif; font-size: 2.7rem; line-height: 1; color: var(--c-ink); }
+.gr-subj .avg small { color: var(--c-mute); font-weight: 700; }
+.gr-subj .meta { display: flex; flex-wrap: wrap; gap: .3rem 1rem; font-size: .78rem; color: var(--c-mute); font-weight: 600; }
+.gr-subj .word { font-size: .82rem; font-weight: 700; color: var(--t); }
+
+.gr-two { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+@media (min-width: 1280px) { .gr-two { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); align-items: start; } }
+.gr-card { padding: 24px; border-radius: 24px; background: var(--c-surface); border: 1px solid var(--c-line); box-shadow: var(--c-shadow); display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.gr-card-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .4rem 1rem; }
+.gr-note { color: var(--c-mute); font-size: .8rem; }
+.gr-blank { text-align: center; color: var(--c-mute); font-size: .9rem; padding: 2rem 1rem; }
+.gr-filters { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+.gr-filters > div { display: flex; flex-wrap: wrap; gap: 6px; }
+.gr-fchip { padding: .35rem .85rem; border-radius: 999px; font-size: .78rem; font-weight: 700; color: var(--c-mute); border: 1px solid var(--c-line); background: transparent; cursor: pointer; transition: all .15s ease; }
+.gr-fchip:hover { color: var(--c-ink); }
+.gr-fchip.on { color: var(--c-ink); background: color-mix(in srgb, var(--c) 18%, transparent); border-color: color-mix(in srgb, var(--c) 55%, transparent); }
+#trendTip { position: absolute; pointer-events: none; padding: .55rem .75rem; border-radius: 12px; font-size: .78rem; line-height: 1.45; color: var(--c-ink); background: var(--c-surface); border: 1px solid var(--c-line); box-shadow: 0 12px 28px -12px rgba(0,0,0,.45); z-index: 5; max-width: 235px; }
+.gr-trend-list { display: flex; flex-direction: column; gap: 8px; }
+.gr-trend-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--c-ink) 4%, transparent); }
+.gr-trend-row .l { display: flex; align-items: center; gap: .6rem; min-width: 0; color: var(--c-ink); } .gr-trend-row .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.gr-trend-row .r { text-align: right; font-size: .8rem; display: flex; flex-direction: column; } .gr-trend-row .r small { color: var(--c-mute); }
+.gr-trend-row .up { color: var(--lo); font-weight: 700; } .gr-trend-row .down { color: var(--hi); font-weight: 700; } .gr-trend-row .flat { color: var(--mid); font-weight: 700; }
+
+.gr-goals { display: flex; flex-direction: column; gap: 12px; }
+.gr-goal { padding: 16px; border-radius: 18px; background: color-mix(in srgb, var(--c-ink) 4%, transparent); border: 1px solid var(--c-line); display: flex; flex-direction: column; gap: 10px; font-size: .82rem; color: var(--c-mute); }
+.gr-goal .gh { display: flex; justify-content: space-between; align-items: center; gap: .5rem; }
+.gr-goal .gh b { display: inline-flex; align-items: center; gap: .55rem; color: var(--c-ink); font-size: .95rem; } .gr-goal .now b { color: var(--c-ink); font-size: .9rem; }
+.gr-goal .track { position: relative; height: 8px; border-radius: 8px; background: color-mix(in srgb, var(--c-ink) 10%, transparent); }
+.gr-goal .fill { height: 100%; border-radius: 8px; background: var(--c); }
+.gr-goal .mark { position: absolute; top: -4px; width: 3px; height: 16px; border-radius: 2px; background: var(--c-ink); transform: translateX(-1px); }
+.gr-goal .row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.gr-goal .out { color: var(--c-ink); line-height: 1.55; } .gr-goal .out .muted, .gr-goal .muted { color: var(--c-mute); }
+.gr-goal .ok { color: var(--lo); font-weight: 700; } .gr-goal .warn { color: var(--hi); font-weight: 700; } .gr-goal .need { color: var(--c); font-size: 1.1em; }
+.gr-goal .lnk { margin-left: auto; font-size: .75rem; color: var(--c-mute); background: none; border: 0; cursor: pointer; }
+body input.fld.sm { width: 74px; padding: .35rem .6rem; font-size: .85rem; border-radius: 10px; }
+.gr-group { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.gr-group-h { display: flex; align-items: center; gap: .6rem; font-weight: 800; color: var(--c-ink); font-size: .85rem; letter-spacing: .06em; text-transform: uppercase; padding-top: 8px; }
+.gr-group-h .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); } .gr-group-h em { margin-left: auto; font-style: normal; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--c-mute); font-size: .8rem; }
+.gr-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 18px; padding: 12px 16px; border-radius: 16px; background: color-mix(in srgb, var(--c-ink) 4%, transparent); border: 1px solid var(--c-line); }
+.gr-row .nm { display: flex; flex-direction: column; min-width: 0; } .gr-row .nm b { color: var(--c-ink); font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .gr-row .nm small { color: var(--c-mute); font-size: .78rem; }
+.gr-row .raw { color: var(--c-mute); font-size: .88rem; font-weight: 600; } .gr-row .raw i { font-style: normal; font-size: .72rem; opacity: .8; }
+.gr-row .ib { display: flex; align-items: baseline; gap: .25rem; min-width: 84px; justify-content: flex-end; } .gr-row .ib b { font-family: 'Fraunces', Georgia, serif; font-size: 1.45rem; color: var(--t); } .gr-row .ib small { color: var(--c-mute); font-size: .75rem; font-weight: 700; }
+.gr-row .x { color: var(--c-mute); background: none; border: 0; cursor: pointer; font-size: .85rem; } .gr-row .x:hover { color: var(--hi); }
+
+/* ---- modals in the calm style ---- */
+.m-card { padding: 26px; border-radius: 24px; background: var(--c-surface); border: 1px solid var(--c-line); box-shadow: 0 30px 70px -24px rgba(0,0,0,.6); }
+.m-label { font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--c-mute); margin-bottom: .35rem; }
+.m-sub { color: var(--c-mute); font-size: .82rem; line-height: 1.5; }
+.m-slash { color: var(--c-mute); font-size: .8rem; font-weight: 700; }
+.m-chip { padding: .28rem .75rem; border-radius: 999px; font-size: .78rem; font-weight: 700; color: var(--c-ink); border: 1px solid var(--c-line); background: transparent; cursor: pointer; } .m-chip:hover { border-color: var(--accent, #8fa8d8); }
+.m-preview { display: flex; flex-wrap: wrap; align-items: baseline; gap: .4rem .6rem; padding: 14px 16px; border-radius: 16px; background: color-mix(in srgb, var(--t, var(--c-ink)) 9%, transparent); border: 1px solid color-mix(in srgb, var(--t, var(--c-ink)) 25%, var(--c-line)); color: var(--c-mute); font-size: .85rem; min-height: 56px; align-content: center; }
+.m-preview b { font-family: 'Fraunces', Georgia, serif; font-size: 1.9rem; color: var(--t); line-height: 1; } .m-preview em { font-style: normal; font-weight: 800; color: var(--t); margin-left: auto; }
+
+/* ---- notes: list on the left, editor to its right ---- */
+#panel-notes > .grid { grid-template-columns: minmax(280px, 340px) minmax(0, 1fr); align-items: start; }
+#panel-notes > .grid > * { grid-column: auto !important; }
+@media (max-width: 900px) { #panel-notes > .grid { grid-template-columns: 1fr; } }
+
+/* ---- light mode: richer, still calm ---- */
+html.day-mode body { background-color: #e6dcc6; background-image: radial-gradient(1100px 560px at 8% -8%, rgba(47,125,91,.13), transparent 62%), radial-gradient(900px 520px at 100% 18%, rgba(185,138,44,.12), transparent 60%), linear-gradient(180deg, #ebe1cd, #e2d7bf); background-attachment: fixed; }
+html.day-mode .page-section, html.day-mode section.page-section:nth-of-type(even), html.day-mode section.page-section:nth-of-type(n) {
+    border: 1.5px solid rgba(31,77,58,.6); background: linear-gradient(180deg, rgba(251,246,236,.7), rgba(243,234,218,.55));
+    box-shadow: 0 1px 2px rgba(60,45,20,.05), 0 22px 44px -30px rgba(60,45,20,.45), inset 0 1px 0 rgba(255,255,255,.45);
+}
+html.day-mode body h2.font-cyber, html.day-mode .sec-eyebrow .sec-num { font-family: 'Fraunces', Georgia, serif; }
+html.day-mode body h2.font-cyber { color: #1f3d30 !important; font-weight: 700; }
+html.day-mode body .btn-primary, html.day-mode:not(.x) body button[class*="bg-gradient"] { background-image: linear-gradient(135deg, #2f7050, #1f4d3a) !important; }
+html.day-mode #panel-assessments .btn-primary, html.day-mode #panel-grades .btn-primary, html.day-mode .m-card .btn-primary, html.day-mode .as-empty .btn-primary, html.day-mode .gr-empty .btn-primary { background-image: linear-gradient(135deg, #2f7050, #1f4d3a) !important; box-shadow: 0 10px 22px -12px rgba(31,77,58,.7) !important; color: #f6f1e7 !important; }
+html.day-mode .m-card { box-shadow: 0 30px 60px -26px rgba(60,45,20,.5); }
+html.day-mode .topbar { box-shadow: 0 2px 18px -6px rgba(28,42,34,.4), inset 0 -1px 0 rgba(255,255,255,.08); }
+    
+/* =====================================================================
+   TITLE PAGE (always clay + forest green) and the tabs-only top bar
+   ===================================================================== */
+html.intro-open { overflow: hidden; }
+.tb-home { margin-left: 0 !important; flex-shrink: 0; font-size: 1.05rem; }
+.tb-toggle--mini .opt { padding: .3rem .6rem; }
+.tb-toggle--mini .opt b { display: none; }
+@media (min-width: 1700px) { .tb-toggle--mini .opt b { display: inline; } }
+
+#introScreen {
+    position: fixed; inset: 0; z-index: 60; overflow-y: auto; overflow-x: hidden; color: #1c2a22; font-family: 'Plus Jakarta Sans', sans-serif;
+    background: linear-gradient(160deg, #e4d9c1 0%, #dccfb4 55%, #d6c8ab 100%);
+    transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.2,1);
+}
+#introScreen.leaving { opacity: 0; transform: scale(1.025); pointer-events: none; }
+.in-deco { position: fixed; border-radius: 50%; pointer-events: none; filter: blur(2px); }
+.in-deco--a { width: 720px; height: 720px; left: -200px; top: -220px; background: radial-gradient(circle at 40% 40%, rgba(47,125,91,.28), rgba(47,125,91,0) 68%); }
+.in-deco--b { width: 640px; height: 640px; right: -180px; bottom: -200px; background: radial-gradient(circle at 60% 60%, rgba(168,100,74,.26), rgba(168,100,74,0) 68%); }
+.in-wrap { position: relative; max-width: 1560px; margin: 0 auto; padding: clamp(20px, 2.6vw, 44px) clamp(16px, 3vw, 56px) 24px; min-height: 100%; display: flex; flex-direction: column; gap: clamp(20px, 2.4vw, 34px); }
+.in-hero { text-align: center; display: flex; flex-direction: column; align-items: center; gap: .6rem; animation: inRise .9s cubic-bezier(.2,.7,.2,1) both; }
+.in-mark { width: 64px; height: 64px; border-radius: 22px; display: grid; place-items: center; font-size: 1.9rem; color: #f6f1e7; background: linear-gradient(145deg, #2f7050, #1f4d3a); box-shadow: 0 18px 36px -16px rgba(31,77,58,.75), inset 0 1px 0 rgba(255,255,255,.2); }
+.in-eyebrow { font-size: .78rem; font-weight: 800; letter-spacing: .38em; color: #2f7d5b; margin-top: .6rem; }
+#introScreen h1 { font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: clamp(2.5rem, 5vw, 4.4rem); line-height: 1.03; color: #1f4d3a; letter-spacing: -.02em; }
+.in-sub { color: #55635a; font-size: clamp(.95rem, 1.2vw, 1.15rem); max-width: 40rem; }
+.in-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (min-width: 1100px) { .in-grid { grid-template-columns: minmax(0, 1fr) minmax(380px, 1.08fr) minmax(0, 1fr); } .in-card--main { order: 0; } }
+@media (max-width: 1099px) { .in-card--main { order: -1; } }
+.in-card { padding: 26px; border-radius: 30px; background: rgba(243,235,219,.78); border: 1.5px solid rgba(31,77,58,.5); box-shadow: 0 1px 2px rgba(60,45,20,.06), 0 28px 52px -32px rgba(60,45,20,.55), inset 0 1px 0 rgba(255,255,255,.5); backdrop-filter: blur(6px); display: flex; flex-direction: column; gap: 16px; animation: inRise .9s .12s cubic-bezier(.2,.7,.2,1) both; }
+.in-card--main { padding: 34px 32px; animation-delay: .04s; background: rgba(248,242,229,.9); border-width: 2px; }
+.in-card-h { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.in-card h2, .in-auth h2 { font-family: 'Fraunces', Georgia, serif; font-size: 1.5rem; font-weight: 700; color: #1f4d3a; }
+.in-h3 { font-size: .72rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: #6a766d; margin-top: .4rem; }
+.in-hint { font-size: .8rem; color: #6a766d; line-height: 1.5; }
+.in-live { display: inline-flex; align-items: center; gap: .45rem; font-size: .75rem; font-weight: 800; color: #2f7d5b; letter-spacing: .08em; text-transform: uppercase; }
+.in-live i { width: 9px; height: 9px; border-radius: 50%; background: #2f7d5b; animation: inPulse 1.8s ease-in-out infinite; }
+@keyframes inPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(47,125,91,.5); } 50% { box-shadow: 0 0 0 7px rgba(47,125,91,0); } }
+@keyframes inRise { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
+.in-clock { display: flex; flex-direction: column; gap: 2px; padding: 16px 18px; border-radius: 20px; background: linear-gradient(135deg, #2a5f47, #1f4d3a); color: #f6f1e7; }
+.in-clock b { font-family: 'Fraunces', Georgia, serif; font-size: 2.5rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.in-clock span { font-size: .85rem; opacity: .8; }
+.in-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.in-tiles--3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.in-tile { padding: 14px 16px; border-radius: 18px; background: rgba(31,77,58,.07); border: 1px solid rgba(31,77,58,.14); display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.in-tile .k { font-size: .66rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; color: #6a766d; }
+.in-tile b { font-family: 'Fraunces', Georgia, serif; font-size: 1.7rem; line-height: 1.15; color: #1f4d3a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.in-tile small { font-size: .76rem; color: #6a766d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.in-tile.off b { color: #9aa39b; }
+
+/* account card */
+.in-auth { display: flex; flex-direction: column; gap: 14px; }
+.in-auth .in-lead { color: #55635a; font-size: .92rem; line-height: 1.5; }
+.in-field { display: flex; flex-direction: column; gap: 6px; }
+.in-field label { font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #6a766d; }
+html body #introScreen input { background: #fbf7ee !important; color: #1c2a22 !important; border: 1.5px solid rgba(31,77,58,.28) !important; border-radius: 14px !important; padding: .85rem 1rem !important; font-size: 1rem !important; width: 100%; box-shadow: none !important; }
+html body #introScreen input:focus { border-color: #2f7d5b !important; box-shadow: 0 0 0 4px rgba(47,125,91,.18) !important; outline: none; }
+html body #introScreen input[readonly] { opacity: .8; }
+html body #introScreen input::placeholder { color: #98a198; }
+.in-err { min-height: 1.2em; font-size: .85rem; font-weight: 700; color: #a8432f; }
+.in-open {
+    display: flex; align-items: center; justify-content: center; gap: .8rem; width: 100%; height: 76px; border-radius: 22px; cursor: pointer; border: 0;
+    font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 1.55rem; letter-spacing: .01em; color: #f6f1e7;
+    background: linear-gradient(135deg, #2f7050, #1f4d3a 70%); box-shadow: 0 22px 40px -18px rgba(31,77,58,.85), inset 0 1px 0 rgba(255,255,255,.22);
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+.in-open:hover { transform: translateY(-3px); box-shadow: 0 28px 48px -18px rgba(31,77,58,.9), inset 0 1px 0 rgba(255,255,255,.22); }
+.in-open:active { transform: translateY(0) scale(.99); }
+.in-open span { transition: transform .2s ease; } .in-open:hover span { transform: translateX(6px); }
+.in-open:disabled { opacity: .6; cursor: wait; }
+.in-link { background: none; border: 0; padding: 0; color: #2f7d5b; font-weight: 700; font-size: .85rem; cursor: pointer; text-align: left; } .in-link:hover { text-decoration: underline; }
+.in-links { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.in-welcome { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 20px; background: rgba(31,77,58,.08); }
+.in-avatar { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; font-family: 'Fraunces', Georgia, serif; font-size: 1.5rem; font-weight: 700; color: #f6f1e7; background: #1f4d3a; flex-shrink: 0; }
+.in-welcome b { font-size: 1.1rem; color: #1f4d3a; display: block; } .in-welcome small { color: #6a766d; }
+.in-shake { animation: inShake .4s ease; } @keyframes inShake { 20% { transform: translateX(-8px); } 40% { transform: translateX(8px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(5px); } }
+
+/* tools card */
+.in-tools { display: flex; flex-direction: column; gap: 8px; }
+.in-btn { display: flex; align-items: center; gap: .75rem; width: 100%; padding: .8rem 1rem; border-radius: 14px; font: 700 .9rem 'Plus Jakarta Sans', sans-serif; color: #1f4d3a; text-align: left; cursor: pointer; background: rgba(31,77,58,.07); border: 1px solid rgba(31,77,58,.18); transition: background .15s ease, transform .15s ease; }
+.in-btn:hover { background: rgba(31,77,58,.14); transform: translateX(3px); }
+.in-btn span { width: 1.4rem; text-align: center; }
+.in-btn--danger { color: #a8432f; background: rgba(168,67,47,.07); border-color: rgba(168,67,47,.25); } .in-btn--danger:hover { background: rgba(168,67,47,.14); }
+.in-seg { display: grid; grid-template-columns: 1fr; gap: 8px; }
+#introScreen .dev-opt { flex-direction: row; justify-content: flex-start; gap: .7rem; padding: .75rem 1rem; border-radius: 14px; font: 700 .88rem 'Plus Jakarta Sans', sans-serif; color: #1f4d3a; background: rgba(31,77,58,.05); border: 1.5px solid rgba(31,77,58,.16); text-align: left; }
+#introScreen .dev-opt span { font-size: 1.25rem; }
+#introScreen .dev-opt:hover { border-color: #2f7d5b; background: rgba(31,77,58,.1); }
+#introScreen .dev-opt.on { border-color: #1f4d3a; background: rgba(31,77,58,.16); box-shadow: inset 0 0 0 1px #1f4d3a; }
+.in-foot { margin-top: auto; text-align: center; font-size: .78rem; color: #6a766d; padding-top: 8px; }
+@media (max-width: 640px) { .in-open { height: 64px; font-size: 1.25rem; } .in-tiles--3 { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .in-hero, .in-card { animation: none; } #introScreen { transition: none; } }
+    
+/* =====================================================================
+   CALM SKIN for Today, Schedule, Calendar, Flashcards, Timer, Notes, Quiz
+   (and the add/edit forms): one clean look in dark AND light
+   ===================================================================== */
+:root { --ac: #9db4e6; --ac-btn: linear-gradient(135deg, #5f7fd0, #7a68c4); --on-ac: #fff; }
+html.day-mode { --ac: #1f4d3a; --ac-btn: linear-gradient(135deg, #2f7050, #1f4d3a); --on-ac: #f6f1e7; }
+.hidden { display: none !important; }
+
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) .holo-card, :is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) [class*="border-glow-"] { background: var(--c-surface) !important; border: 1px solid var(--c-line) !important; box-shadow: var(--c-shadow) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) .text-white:not(button), :is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) .text-white:not(button) * { color: var(--c-ink) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is(.text-slate-100, .text-slate-200, .text-slate-300) { color: color-mix(in srgb, var(--c-ink) 82%, transparent) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is(.text-slate-400, .text-slate-500) { color: var(--c-mute) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="text-[#00f0ff]"], [class*="text-[#b026ff]"], [class*="text-[#a78bfa]"], [class*="text-[#c4b5fd]"], [class*="text-[#93c5fd]"], [class*="text-[#60a5fa]"]) { color: var(--ac) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="text-[#00ff9d]"], [class*="text-[#34d399]"]) { color: var(--lo) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="text-[#ff007f]"], .text-red-300, .text-red-400) { color: var(--hi) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="text-[#fde047]"], [class*="text-[#fbbf24]"], .text-amber-300) { color: var(--mid) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="bg-slate-950"], [class*="bg-slate-900"], [class*="bg-slate-800"]) { background-color: var(--c-surface2) !important; color: var(--c-ink); }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is(.border-slate-800, .border-slate-700, .border-slate-600) { border-color: var(--c-line) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="bg-[#00f0ff]/"], [class*="bg-[#b026ff]/"], [class*="bg-[#a78bfa]/"]) { background-color: color-mix(in srgb, var(--ac) 12%, transparent) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="bg-[#00ff9d]/"], [class*="bg-[#34d399]/"]) { background-color: color-mix(in srgb, var(--lo) 13%, transparent) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="bg-[#ff007f]/"]) { background-color: color-mix(in srgb, var(--hi) 13%, transparent) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="bg-[#fde047]/"], [class*="bg-[#fbbf24]/"]) { background-color: color-mix(in srgb, var(--mid) 14%, transparent) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="border-[#00f0ff]"], [class*="border-[#b026ff]"], [class*="border-[#a78bfa]"]) { border-color: color-mix(in srgb, var(--ac) 38%, transparent) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="border-[#00ff9d]"], [class*="border-[#34d399]"]) { border-color: color-mix(in srgb, var(--lo) 40%, transparent) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="border-[#ff007f]"]) { border-color: color-mix(in srgb, var(--hi) 40%, transparent) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="border-[#fde047]"], [class*="border-[#fbbf24]"]) { border-color: color-mix(in srgb, var(--mid) 40%, transparent) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) :is([class*="bg-[#00f0ff]"], [class*="bg-[#00ff9d]"], [class*="bg-[#a78bfa]"], [class*="bg-[#b026ff]"]):not([class*="/"]):not([class*="file:"]) { background: var(--ac-btn) !important; color: var(--on-ac) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) button[class*="bg-gradient"] { background: var(--ac-btn) !important; color: var(--on-ac) !important; box-shadow: none !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) [class*="shadow-[0_0"], :is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) .shadow-lg { box-shadow: none !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) [style*="rgba(2,6,23"], :is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) [style*="rgba(2, 6, 23"], :is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) [style*="rgba(15,23,42"], :is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) [style*="rgba(6,40,30"] { background: var(--c-surface2) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) .btn-primary { background: var(--ac-btn) !important; color: var(--on-ac) !important; border: 0; padding: .7rem 1.15rem; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 22px -14px rgba(0,0,0,.55) !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) .btn-ghost { color: var(--c-ink) !important; border: 1px solid var(--c-line) !important; background: transparent; padding: .6rem 1rem; border-radius: 12px; font-weight: 600; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) .btn-ghost:hover { background: color-mix(in srgb, var(--c-ink) 7%, transparent); }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) input:not([type="checkbox"]):not([type="radio"]), :is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) select, :is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) textarea { background: var(--c-surface2) !important; color: var(--c-ink) !important; border: 1px solid var(--c-line) !important; border-radius: 12px !important; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) input:not([type="checkbox"]):focus, :is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) select:focus, :is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) textarea:focus { border-color: var(--ac) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--ac) 22%, transparent) !important; outline: none; }
+:is(#panel-daily, #panel-schedule, #panel-calendar, #panel-cards, #panel-timer, #panel-notes, #panel-quiz, #modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) input[type="checkbox"] { accent-color: var(--ac); }
+:is(#modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) > div { border-radius: 24px !important; padding: 26px !important; }
+:is(#modalAssessment, #modalSubject, #modalSched, #modalDaily, #modalTask) h3 { font-family: 'Fraunces', Georgia, serif !important; font-size: 1.35rem !important; font-weight: 700 !important; letter-spacing: 0 !important; text-transform: none; }
+.rv-btns { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.gr-link { background: none; border: 0; color: var(--ac); font-weight: 700; font-size: .85rem; cursor: pointer; } .gr-link:hover { text-decoration: underline; }
+.seg { display: inline-flex; padding: 4px; border-radius: 14px; background: color-mix(in srgb, var(--c-ink) 7%, transparent); border: 1px solid var(--c-line); }
+.seg--wrap { flex-wrap: wrap; }
+.seg-btn { padding: .5rem 1.1rem; border-radius: 10px; font-weight: 700; font-size: .85rem; color: var(--c-mute); background: transparent; border: 0; cursor: pointer; transition: all .15s ease; display: inline-flex; flex-direction: column; align-items: center; line-height: 1.15; }
+.seg-btn small { font-size: .66rem; font-weight: 600; opacity: .8; }
+.seg-btn:hover { color: var(--c-ink); }
+.seg-btn.on { background: var(--c-surface); color: var(--ac); box-shadow: 0 2px 8px -2px rgba(0,0,0,.35); }
+
+/* ---- Today ---- */
+.td-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+@media (min-width: 1100px) { .td-grid { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; } }
+.td-progress { display: flex; align-items: center; gap: 18px; padding-bottom: 6px; }
+.td-ring { position: relative; width: 78px; height: 78px; flex-shrink: 0; } .td-ring svg { width: 100%; height: 100%; }
+.td-ring .trk { fill: none; stroke: color-mix(in srgb, var(--c-ink) 10%, transparent); stroke-width: 7; } .td-ring .val { fill: none; stroke: var(--lo); stroke-width: 7; stroke-linecap: round; transition: stroke-dasharray .6s ease; }
+.td-ring b { position: absolute; inset: 0; display: grid; place-items: center; font-family: 'Fraunces', Georgia, serif; font-size: 1.05rem; color: var(--c-ink); }
+.td-item { display: flex; align-items: stretch; gap: 8px; }
+.td-row { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; text-align: left; padding: 14px 16px; border-radius: 18px; background: color-mix(in srgb, var(--c-ink) 4%, transparent); border: 1px solid var(--c-line); cursor: pointer; transition: transform .15s ease, border-color .15s ease; }
+.td-row:hover { transform: translateX(3px); border-color: color-mix(in srgb, var(--ac) 40%, var(--c-line)); }
+.td-check { width: 26px; height: 26px; border-radius: 50%; border: 2px solid color-mix(in srgb, var(--c-mute) 60%, transparent); display: grid; place-items: center; color: transparent; font-size: .8rem; font-weight: 900; flex-shrink: 0; transition: all .2s ease; }
+.td-item.is-on .td-check { background: var(--lo); border-color: var(--lo); color: #fff; }
+.td-item.is-on .td-row { background: color-mix(in srgb, var(--lo) 9%, transparent); }
+.td-item.is-on .td-txt b { text-decoration: line-through; opacity: .6; }
+.td-ic { font-size: 1.5rem; } .td-txt { display: flex; flex-direction: column; min-width: 0; } .td-txt b { color: var(--c-ink); font-size: 1rem; } .td-txt small { color: var(--c-mute); font-size: .8rem; }
+.td-act { display: grid; place-items: center; width: 44px; border-radius: 14px; border: 1px solid var(--c-line); color: var(--c-mute); background: transparent; cursor: pointer; text-decoration: none; } .td-act:hover { color: var(--c-ink); background: color-mix(in srgb, var(--c-ink) 7%, transparent); }
+.td-alert { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 18px; background: color-mix(in srgb, var(--hi) 6%, var(--c-surface2)); border: 1px solid var(--c-line); }
+.td-alert .tags { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .3rem; }
+.td-alert b { color: var(--c-ink); display: block; } .td-alert small { color: var(--c-mute); }
+.td-pill { padding: .15rem .65rem; border-radius: 999px; font-size: .72rem; font-weight: 800; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+.td-empty { text-align: center; color: var(--c-mute); padding: 1.6rem 1rem; font-size: .9rem; border: 1px dashed color-mix(in srgb, var(--c-mute) 40%, transparent); border-radius: 18px; }
+.td-empty b { display: block; color: var(--c-ink); font-size: 1rem; margin: .3rem 0; }
+
+/* ---- Schedule ---- */
+.sc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; }
+.sc-day { padding: 16px; border-radius: 22px; background: var(--c-surface); border: 1px solid var(--c-line); box-shadow: var(--c-shadow); display: flex; flex-direction: column; gap: 10px; min-height: 260px; }
+.sc-day.is-today { background: linear-gradient(180deg, color-mix(in srgb, var(--ac) 10%, var(--c-surface)), var(--c-surface) 70%); border-color: color-mix(in srgb, var(--ac) 40%, var(--c-line)); }
+.sc-h { display: flex; align-items: center; gap: .5rem; } .sc-h b { font-family: 'Fraunces', Georgia, serif; font-size: 1.1rem; color: var(--c-ink); }
+.sc-h em { font-style: normal; font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--on-ac); background: var(--ac-btn); padding: .12rem .55rem; border-radius: 999px; }
+.sc-add { margin-left: auto; font-size: .78rem; font-weight: 700; color: var(--ac); background: none; border: 0; cursor: pointer; } .sc-add:hover { text-decoration: underline; }
+.sc-item { text-align: left; display: flex; flex-direction: column; gap: 1px; padding: 11px 13px; border-radius: 14px; background: color-mix(in srgb, var(--c) 12%, var(--c-surface2)); border: 1px solid color-mix(in srgb, var(--c) 22%, var(--c-line)); cursor: pointer; transition: transform .15s ease; }
+.sc-item:hover { transform: translateY(-2px); }
+.sc-item .t { font-size: .72rem; font-weight: 800; letter-spacing: .04em; color: var(--c); } .sc-item b { color: var(--c-ink); font-size: .95rem; } .sc-item small { color: var(--c-mute); font-size: .76rem; }
+.sc-empty { color: var(--c-mute); font-size: .82rem; text-align: center; padding: 1.4rem 0; opacity: .8; }
+
+/* ---- Calendar ---- */
+.cal-card { gap: 10px; padding: 22px; }
+.cal-dow, .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.cal-dow span { text-align: center; font-size: .72rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--c-mute); padding: 4px 0; }
+.cal-cell { min-height: 104px; padding: 9px 10px; border-radius: 16px; background: color-mix(in srgb, var(--c-ink) 4%, transparent); border: 1px solid var(--c-line); display: flex; flex-direction: column; gap: 5px; min-width: 0; transition: background .15s ease; }
+.cal-cell:hover { background: color-mix(in srgb, var(--c-ink) 8%, transparent); }
+.cal-cell.is-blank { background: transparent; border-color: transparent; }
+.cal-cell.is-today { background: color-mix(in srgb, var(--ac) 13%, var(--c-surface)); border-color: color-mix(in srgb, var(--ac) 50%, var(--c-line)); }
+.cal-d { font-family: 'Fraunces', Georgia, serif; font-size: 1rem; font-weight: 700; color: var(--c-ink); width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; }
+.cal-cell.is-today .cal-d { background: var(--ac-btn); color: var(--on-ac); }
+.cal-ev { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cal-chip { padding: 3px 8px; border-radius: 8px; font-size: .7rem; font-weight: 700; color: var(--p); background: color-mix(in srgb, var(--p) 15%, transparent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cal-chip.lvl-high { --p: var(--hi); } .cal-chip.lvl-medium { --p: var(--mid); } .cal-chip.lvl-low { --p: var(--lo); } .cal-chip.past { --p: var(--c-mute); } .cal-chip.task { --p: var(--ac); }
+.cal-more { font-size: .68rem; color: var(--c-mute); font-weight: 700; }
+@media (max-width: 900px) { .cal-cell { min-height: 76px; padding: 6px; } .cal-chip { font-size: .62rem; } }
+.bp-box { padding: 16px 18px; border-radius: 16px; background: color-mix(in srgb, var(--ac) 7%, transparent); border: 1px solid var(--c-line); display: flex; flex-direction: column; gap: .5rem; }
+
+/* ---- Flashcards ---- */
+.cd-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; } @media (min-width: 900px) { .cd-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.cd-stat { padding: 18px 20px; border-radius: 20px; background: var(--c-surface) !important; border: 1px solid var(--c-line) !important; box-shadow: var(--c-shadow); text-align: left !important; }
+.cd-stat b { font-family: 'Fraunces', Georgia, serif; font-size: 2.2rem !important; color: var(--c-ink) !important; line-height: 1.1; }
+.cd-stat span { color: var(--c-mute) !important; font-size: .72rem !important; font-weight: 800; letter-spacing: .13em !important; }
+.cd-card { min-height: 320px !important; border-radius: 26px !important; background: linear-gradient(150deg, color-mix(in srgb, var(--ac) 9%, var(--c-surface2)), var(--c-surface2)) !important; border: 1px solid color-mix(in srgb, var(--ac) 30%, var(--c-line)) !important; box-shadow: var(--c-shadow); }
+.cd-card:hover { border-color: var(--ac) !important; transform: translateY(-2px); }
+.cd-card.is-back { background: linear-gradient(150deg, color-mix(in srgb, var(--lo) 12%, var(--c-surface2)), var(--c-surface2)) !important; border-color: color-mix(in srgb, var(--lo) 45%, var(--c-line)) !important; }
+.cd-side { color: var(--c-mute) !important; letter-spacing: .2em !important; }
+.cd-text { font-family: 'Fraunces', Georgia, serif; font-weight: 600 !important; font-size: clamp(1.5rem, 2.6vw, 2.3rem) !important; color: var(--c-ink) !important; }
+.cd-rate { background: var(--c-surface2) !important; border: 1px solid var(--c-line) !important; border-radius: 16px !important; color: var(--c-ink) !important; font-size: .95rem !important; }
+.cd-rate:nth-child(1) { color: var(--hi) !important; } .cd-rate:nth-child(2) { color: var(--mid) !important; } .cd-rate:nth-child(3) { color: var(--lo) !important; } .cd-rate:nth-child(4) { color: var(--ac) !important; }
+.cd-rate span { color: var(--c-mute) !important; }
+.cd-bulk { padding: 14px 16px; border-radius: 16px; border: 1px solid var(--c-line); } .cd-bulk summary { cursor: pointer; font-weight: 700; color: var(--ac); font-size: .9rem; }
+#panel-cards code { background: color-mix(in srgb, var(--c-ink) 8%, transparent); padding: 0 .35rem; border-radius: 5px; }
+
+/* ---- Focus timer ---- */
+.tm-card { display: grid !important; grid-template-columns: minmax(0, 1fr); gap: 36px; align-items: center; justify-items: center; padding: 40px 28px !important; }
+@media (min-width: 1000px) { .tm-card { grid-template-columns: auto minmax(0, 1fr); gap: 72px; padding: 52px 72px !important; justify-items: stretch; } .tm-ringwrap { justify-self: center; } }
+.tm-ringwrap { position: relative; width: 320px; height: 320px; flex-shrink: 0; }
+.tm-ring { width: 100%; height: 100%; } .tm-ring .trk { fill: none; stroke: color-mix(in srgb, var(--c-ink) 10%, transparent); stroke-width: 12; }
+.tm-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.tm-cup { font-size: 2rem; } .tm-time { font-family: 'Fraunces', Georgia, serif; font-size: 4rem; font-weight: 700; line-height: 1; color: var(--c-ink); font-variant-numeric: tabular-nums; }
+.tm-state { font-size: .72rem; font-weight: 800; letter-spacing: .22em; color: var(--ac); }
+.tm-side { display: flex; flex-direction: column; gap: 26px; width: 100%; max-width: 560px; }
+.tm-actions { display: flex; gap: 12px; } .tm-start { flex: 1; height: 64px; font-size: 1.05rem !important; letter-spacing: .06em; border-radius: 18px !important; } .tm-reset { height: 64px; padding: 0 1.8rem !important; border-radius: 18px !important; }
+.tm-chime { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-top: 18px; border-top: 1px solid var(--c-line); font-size: .88rem; color: var(--c-mute); }
+
+/* ---- Notes ---- */
+.nt-list { padding: 16px !important; gap: 12px; } .nt-editor { padding: 22px !important; gap: 14px; }
+.note-item { background: color-mix(in srgb, var(--c-ink) 4%, transparent) !important; border: 1px solid var(--c-line) !important; border-radius: 16px !important; padding: 12px 14px !important; transition: transform .15s ease; }
+.note-item:hover { transform: translateX(3px); }
+.note-item.is-sel { background: color-mix(in srgb, var(--ac) 12%, transparent) !important; border-color: color-mix(in srgb, var(--ac) 50%, var(--c-line)) !important; }
+#noteBody { line-height: 1.75; font-size: 1rem !important; min-height: 52vh !important; }
+#noteTitle { font-family: 'Fraunces', Georgia, serif; font-size: 1.25rem !important; }
+
+/* ---- Quiz ---- */
+.qz-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.qz-row [id^="quizLen-"] { padding: .45rem 1rem; border-radius: 999px; font-weight: 800; font-size: .82rem; color: var(--c-mute); border: 1px solid var(--c-line); background: transparent; cursor: pointer; }
+.qz-row [id^="quizLen-"][class*="fde047"] { color: var(--on-ac) !important; background: var(--ac-btn) !important; border-color: transparent !important; }
+.quiz-pill { padding: .6rem 1.1rem !important; border-radius: 14px !important; font-weight: 700 !important; font-size: .88rem !important; color: var(--c-ink) !important; background: color-mix(in srgb, var(--c-ink) 4%, transparent) !important; border: 1px solid var(--c-line) !important; cursor: pointer; transition: all .15s ease; }
+.quiz-pill:hover { border-color: color-mix(in srgb, var(--ac) 45%, var(--c-line)) !important; }
+.quiz-pill[class*="a78bfa"] { background: var(--ac-btn) !important; color: var(--on-ac) !important; border-color: transparent !important; }
+.qz-arena { gap: 18px !important; padding: 28px !important; }
+.qz-step { font-size: .78rem; font-weight: 800; letter-spacing: .14em; color: var(--c-mute); }
+.qz-bar { height: 8px; border-radius: 8px; background: color-mix(in srgb, var(--c-ink) 10%, transparent); overflow: hidden; } .qz-bar i { display: block; height: 100%; width: 0; border-radius: 8px; background: var(--ac-btn); transition: width .4s ease; }
+.qz-q { padding: 26px 28px; border-radius: 22px; background: linear-gradient(150deg, color-mix(in srgb, var(--ac) 8%, var(--c-surface2)), var(--c-surface2)); border: 1px solid var(--c-line); }
+.qz-q h3 { font-family: 'Fraunces', Georgia, serif; font-size: clamp(1.3rem, 2.2vw, 1.9rem); font-weight: 600; line-height: 1.35; color: var(--c-ink); }
+#quizOptionsGrid .quiz-option { padding: 1.1rem 1.25rem !important; border-radius: 18px !important; background: color-mix(in srgb, var(--c-ink) 4%, transparent) !important; border: 1.5px solid var(--c-line) !important; color: var(--c-ink) !important; font-weight: 600 !important; font-size: .98rem !important; box-shadow: none !important; text-align: left; }
+#quizOptionsGrid .quiz-option:hover { background: color-mix(in srgb, var(--ac) 11%, transparent) !important; border-color: var(--ac) !important; transform: translateY(-2px); }
+#quizOptionsGrid .quiz-option > span:first-child { width: 2rem; height: 2rem; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: .8rem; color: var(--ac) !important; background: color-mix(in srgb, var(--ac) 14%, transparent) !important; border: 0 !important; }
+#quizOptionsGrid .quiz-option[style*="00ff9d"] { border-color: var(--lo) !important; background: color-mix(in srgb, var(--lo) 14%, transparent) !important; }
+#quizOptionsGrid .quiz-option[style*="ff007f"] { border-color: var(--hi) !important; background: color-mix(in srgb, var(--hi) 12%, transparent) !important; }
+.qz-fb { padding: 14px 18px; border-radius: 16px; font-weight: 700; text-align: center; }
+.qz-win { align-items: center; text-align: center; gap: 18px !important; padding: 44px 28px !important; }
+.qz-trophy { font-size: 3.4rem; } .qz-score { font-family: 'Fraunces', Georgia, serif; font-size: 1.6rem; color: var(--lo); font-weight: 700; }
+.qz-scale { display: inline-flex; flex-direction: column; gap: 4px; padding: 16px 28px; border-radius: 18px; background: color-mix(in srgb, var(--ac) 9%, transparent); border: 1px solid var(--c-line); }
+.qz-scale .k { font-size: .7rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--c-mute); } .qz-scale b { font-family: 'Fraunces', Georgia, serif; font-size: 1.5rem; color: var(--ac); }
     </style>
 </head>
 <body class="min-h-screen selection:bg-[#00f0ff] selection:text-slate-950">
@@ -879,11 +1296,9 @@ html.dev-small #sideRail { right: 6px; }
     <!-- 60FPS Meteor Shower & Starfield Canvas -->
     <canvas id="meteorCanvas"></canvas>
 
-    <!-- GLOWING TOP BAR: brand, jump buttons, theme switch, menu -->
+    <!-- GLOWING TOP BAR: just the section tabs (title, backup and settings live on the title page) -->
     <header id="topBar" class="topbar">
-        <button type="button" class="tb-brand" onclick="scrollToTop()" title="Back to the top">
-            <span class="tb-logo">☕</span><span class="tb-title">DAILY PRACTICE HUB</span><span class="tb-badge">Study</span>
-        </button>
+        <button type="button" class="jump-btn round tb-home" onclick="showIntro()" title="Back to the title page" aria-label="Back to the title page">🏠</button>
         <nav id="jumpNav" class="tb-nav" aria-label="Jump to a section">
             <button type="button" class="jump-btn" data-target="howto" onclick="switchTab('howto')" title="How to Use"><span class="ic">📖</span><span class="lbl">Guide</span></button>
             <button type="button" class="jump-btn" data-target="assessments" onclick="switchTab('assessments')" title="Assessments"><span class="ic">📚</span><span class="lbl">Assessments</span></button>
@@ -899,23 +1314,9 @@ html.dev-small #sideRail { right: 6px; }
             <button type="button" class="jump-btn" data-target="game" onclick="switchTab('game')" title="Sovereign Roll"><span class="ic">🎲</span><span class="lbl">Game</span></button>
             <button type="button" class="jump-btn round" data-target="about" onclick="switchTab('about')" title="About" aria-label="About">?</button>
         </nav>
-        <div class="tb-actions">
-            <button type="button" id="modeToggleBtn" class="tb-toggle" onclick="toggleDayNightMode()" title="Switch between dark and light mode" aria-label="Switch between dark and light mode">
-                <span class="opt opt-dark">🌙<b> Dark</b></span><span class="opt opt-light">☀<b> Light</b></span>
-            </button>
-            <div class="tb-menu" id="barMenu">
-                <button type="button" id="barMenuBtn" class="tb-menu-btn" onclick="toggleBarMenu()" aria-haspopup="true" aria-expanded="false" title="Backup, restore and more">⋯</button>
-                <div class="tb-menu-panel" role="menu">
-                    <button type="button" role="menuitem" onclick="toggleBarMenu(false);exportBackup()">⬇ Download backup</button>
-                    <button type="button" role="menuitem" onclick="toggleBarMenu(false);document.getElementById('importFileInput').click()">⬆ Restore from backup</button>
-                    <button type="button" role="menuitem" onclick="toggleBarMenu(false);downloadStandaloneHtml()">💾 Save index.html</button>
-                    <button type="button" role="menuitem" onclick="toggleBarMenu(false);openDevicePicker()">🖥 Change screen size / device</button>
-                    <button type="button" role="menuitem" class="danger" onclick="toggleBarMenu(false);resetEverythingToZero()">↺ Reset assessments &amp; grades</button>
-                    <p>Your data stays on this computer only. Use Backup to keep it or move it.</p>
-                </div>
-                <input type="file" id="importFileInput" accept="application/json,.json" class="hidden" onchange="importBackup(event)">
-            </div>
-        </div>
+        <button type="button" id="modeToggleBtn" class="tb-toggle tb-toggle--mini" onclick="toggleDayNightMode()" title="Switch between dark and light mode" aria-label="Switch between dark and light mode">
+            <span class="opt opt-dark">🌙<b> Dark</b></span><span class="opt opt-light">☀<b> Light</b></span>
+        </button>
     </header>
 
     <aside id="sideRail" aria-label="Section arrows">
@@ -925,20 +1326,54 @@ html.dev-small #sideRail { right: 6px; }
     </aside>
     <button type="button" id="toTopBtn" onclick="scrollToTop()" aria-label="Jump to top">↑ Jump to top</button>
 
-    <!-- FIRST-RUN SETUP: what are you using? -->
-    <div id="deviceModal" class="fixed inset-0 z-[70] hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="deviceTitle">
-        <div class="holo-card rounded-3xl p-6 md:p-8 max-w-2xl w-full space-y-5">
-            <div>
-                <h3 id="deviceTitle" class="font-cyber text-xl font-black text-white">Quick setup: what are you using?</h3>
-                <p class="text-sm text-slate-300 mt-1">This makes the top bar fit your screen. You can change it any time from the ⋯ menu.</p>
+    <div id="deviceModal" class="fixed inset-0 z-[70] hidden"></div>
+
+    <!-- TITLE PAGE: account, live metrics, backup and screen size, then "Open web page" -->
+    <main id="introScreen" aria-label="Daily Practice Hub title page">
+        <div class="in-deco in-deco--a"></div><div class="in-deco in-deco--b"></div>
+        <div class="in-wrap">
+            <header class="in-hero">
+                <div class="in-mark">☕</div>
+                <div class="in-eyebrow">STUDY EDITION</div>
+                <h1>Daily Practice Hub</h1>
+                <p class="in-sub">Your assessments, IB grades, flashcards and focus time, all in one calm place.</p>
+            </header>
+
+            <div class="in-grid">
+                <section class="in-card" aria-labelledby="inMetricsH">
+                    <div class="in-card-h"><h2 id="inMetricsH">Live metrics</h2><span class="in-live"><i></i>Live</span></div>
+                    <div class="in-clock"><b id="inClock">--:--:--</b><span id="inDate"></span></div>
+                    <div class="in-tiles" id="inTiles"></div>
+                </section>
+
+                <section class="in-card in-card--main" aria-labelledby="inAuthH">
+                    <div id="introAuth"></div>
+                </section>
+
+                <section class="in-card" aria-labelledby="inToolsH">
+                    <div class="in-card-h"><h2 id="inToolsH">Your data &amp; setup</h2></div>
+                    <div class="in-tools">
+                        <button type="button" class="in-btn" onclick="exportBackup()"><span>⬇</span>Download backup</button>
+                        <button type="button" class="in-btn" onclick="document.getElementById('importFileInput').click()"><span>⬆</span>Restore from backup</button>
+                        <button type="button" class="in-btn" onclick="downloadStandaloneHtml()"><span>💾</span>Save index.html</button>
+                        <input type="file" id="importFileInput" accept="application/json,.json" class="hidden" onchange="importBackup(event)">
+                    </div>
+                    <h3 class="in-h3">Screen size</h3>
+                    <div class="in-seg">
+                        <button type="button" class="dev-opt" data-dev="desktop" onclick="setDevice('desktop')"><span>🖥️</span>Big monitor</button>
+                        <button type="button" class="dev-opt" data-dev="laptop" onclick="setDevice('laptop')"><span>💻</span>Laptop / Chromebook</button>
+                        <button type="button" class="dev-opt" data-dev="small" onclick="setDevice('small')"><span>📱</span>Tablet / phone</button>
+                    </div>
+                    <h3 class="in-h3">Appearance</h3>
+                    <button type="button" class="in-btn in-btn--wide" onclick="toggleDayNightMode()"><span>🌓</span>Switch the website between dark and light</button>
+                    <h3 class="in-h3">Careful</h3>
+                    <button type="button" class="in-btn in-btn--danger" onclick="resetEverythingToZero()"><span>↺</span>Reset assessments &amp; grades</button>
+                    <p class="in-hint">Everything you add is saved only in this browser on this computer. Download a backup now and then.</p>
+                </section>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <button type="button" class="dev-opt" data-dev="desktop" onclick="setDevice('desktop')"><span>🖥️</span><b>Big monitor</b><small>Desktop or wide / curved screen</small></button>
-                <button type="button" class="dev-opt" data-dev="laptop" onclick="setDevice('laptop')"><span>💻</span><b>Laptop / Chromebook</b><small>Smaller screen, compact bar</small></button>
-                <button type="button" class="dev-opt" data-dev="small" onclick="setDevice('small')"><span>📱</span><b>Tablet / phone</b><small>Bar wraps onto two rows</small></button>
-            </div>
+            <footer class="in-foot">© 2026 Academic Tracker — Daily Practice Hub</footer>
         </div>
-    </div>
+    </main>
 
     <!-- MAIN APPLICATION SHELL: one seamless vertical page -->
     <div id="mainAppShell" class="app-shell">
@@ -972,7 +1407,7 @@ html.dev-small #sideRail { right: 6px; }
                 <h3 class="font-cyber text-lg font-black text-[#fbbf24]">⚠ YOUR DATA STAYS ON THIS COMPUTER</h3>
                 <p class="text-sm text-slate-200">Everything you add (subjects, assessments, grades, notes, flashcards) is saved <strong class="text-white">only in this browser on this computer</strong>. It does <strong class="text-white">not</strong> sync between computers, browsers or people, and nobody else can see it.</p>
                 <ul class="list-disc pl-5 text-sm text-slate-300 space-y-1">
-                    <li>Click <strong class="text-white">⬇ Backup</strong> (top of the page) to download a backup file. Do this every week or two.</li>
+                    <li>Click <strong class="text-white">⬇ Backup</strong> (on the title page: press the 🏠 button on the top bar) to download a backup file. Do this every week or two.</li>
                     <li>To use your data on another computer, or after clearing your browser, open the site there and click <strong class="text-white">⬆ Restore</strong> and pick your backup file.</li>
                     <li>Clearing browser data, private/incognito windows or a different browser all start empty. Your backup file is the only thing that moves your data.</li>
                     <li>Your Groq key is never included in a backup, so you add it again on each computer.</li>
@@ -1015,268 +1450,218 @@ html.dev-small #sideRail { right: 6px; }
         </section>
 
         <section id="panel-assessments" class="page-section tab-panel space-y-6" data-icon="📚" data-title="Assessments">
-            <div class="space-y-3">
-                <div class="flex items-center justify-between gap-3">
-                    <div>
-                        <h2 class="font-cyber text-white">My Subjects</h2>
-                        <p class="text-xs text-slate-400 mt-1">Add the classes you take. Each subject can have its own NotebookLM link.</p>
-                    </div>
-                    <button onclick="openSubjectModal()" class="btn-primary">+ Add subject</button>
-                </div>
-                <div id="subjectChipGrid" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
-            </div>
-
-            <div class="flex flex-col md:flex-row items-start md:items-end justify-between gap-4 pt-2">
-                <div class="space-y-2">
-                    <h2 class="font-cyber text-white">Active Assessments</h2>
-                    <div class="flex flex-wrap gap-x-5 gap-y-1">
-                        <span class="legend-dot" style="--c:#ff4d94">High · 0–3 days</span>
-                        <span class="legend-dot" style="--c:#fbbf24">Medium · 3–12 days</span>
-                        <span class="legend-dot" style="--c:#34d399">Low · 12+ days</span>
-                    </div>
+            <div class="rv-head">
+                <div>
+                    <h2 class="sec-title">Assessments</h2>
+                    <p class="sec-sub">Everything that is due, in order. The closer the date, the more it stands out.</p>
                 </div>
                 <button onclick="openAssessmentModal('')" class="btn-primary">+ Add assessment</button>
             </div>
+            <div id="asStats" class="as-stats"></div>
+            <div class="rv-head rv-head--sm">
+                <h3 class="sec-h3">My subjects</h3>
+                <button onclick="openSubjectModal()" class="btn-ghost">+ Add subject</button>
+            </div>
+            <div id="subjectChipGrid" class="as-subjects"></div>
+            <div class="rv-head rv-head--sm">
+                <h3 class="sec-h3">Coming up</h3>
+                <div class="as-legend"><span style="--c:var(--hi)">Urgent · 3 days or less</span><span style="--c:var(--mid)">Soon · within 12 days</span><span style="--c:var(--lo)">Later</span></div>
+            </div>
+            <div id="assessmentsContainer" class="as-list"></div>
 
-            <div id="assessmentsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
         </section>
 
         <section id="panel-daily" class="page-section tab-panel space-y-6" data-icon="📆" data-title="Today">
-            <div class="holo-card border-glow-cyan rounded-3xl p-6 md:p-8 space-y-5">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                        <h2 class="font-cyber text-white">Today</h2>
-                        <p id="dailyDate" class="text-sm text-slate-400 mt-1"></p>
-                    </div>
-                    <div class="flex flex-wrap gap-2">
-                        <button onclick="openSubjectModal()" class="btn-ghost">+ Add subject</button>
-                        <button onclick="openDailyModal()" class="btn-primary">+ Add daily practice</button>
-                    </div>
+            <div class="rv-head">
+                <div>
+                    <h2 class="sec-title">Today</h2>
+                    <p id="dailyDate" class="sec-sub"></p>
                 </div>
-                <div class="space-y-3" id="dailyChecklist"></div>
-            </div>
-            <div class="holo-card border-glow-magenta rounded-3xl p-6 md:p-8 space-y-4">
-                <div class="flex items-center justify-between gap-3">
-                    <h2 class="font-cyber text-white">High priority assignments</h2>
-                    <button onclick="switchTab('assessments')" class="btn-ghost">All assessments →</button>
+                <div class="rv-btns">
+                    <button onclick="openSubjectModal()" class="btn-ghost">+ Add subject</button>
+                    <button onclick="openDailyModal()" class="btn-primary">+ Add daily practice</button>
                 </div>
-                <div id="dailyPriorityList" class="space-y-3"></div>
             </div>
+            <div class="td-grid">
+                <div class="gr-card td-main">
+                    <div id="dailyProgress" class="td-progress"></div>
+                    <div class="space-y-3" id="dailyChecklist"></div>
+                </div>
+                <div class="gr-card td-side">
+                    <div class="gr-card-head"><h3 class="sec-h3">Needs attention</h3><button onclick="switchTab('assessments')" class="gr-link">All assessments →</button></div>
+                    <p class="gr-note">Anything due in the next 3 days.</p>
+                    <div id="dailyPriorityList" class="space-y-3"></div>
+                </div>
+            </div>
+        
+
         </section>
 
         <section id="panel-schedule" class="page-section tab-panel space-y-6" data-icon="🗓️" data-title="Class Schedule">
-            <div class="holo-card border-glow-cyan rounded-3xl p-6 md:p-8 space-y-5">
-                <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                        <h2 class="font-cyber text-white">Daily Schedule</h2>
-                        <p class="text-sm text-slate-400 mt-1">Post your classes for each weekday of Week A and Week B.</p>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button id="schedBtnA" onclick="setSchedWeek('A')" class="btn-primary">Week A</button>
-                        <button id="schedBtnB" onclick="setSchedWeek('B')" class="btn-ghost">Week B</button>
-                        <button onclick="copySchedWeek()" class="btn-ghost" id="schedCopyBtn" title="Copy this week's schedule onto the other week">⧉ Copy to Week B</button>
-                    </div>
+            <div class="rv-head">
+                <div>
+                    <h2 class="sec-title">Class schedule</h2>
+                    <p class="sec-sub">Your Week A and Week B timetable. Today's column is highlighted.</p>
                 </div>
-                <div id="schedGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"></div>
+                <div class="rv-btns">
+                    <div class="seg"><button id="schedBtnA" onclick="setSchedWeek('A')" class="seg-btn on">Week A</button><button id="schedBtnB" onclick="setSchedWeek('B')" class="seg-btn">Week B</button></div>
+                    <button onclick="copySchedWeek()" class="btn-ghost" id="schedCopyBtn" title="Copy this week's schedule onto the other week">⧉ Copy to Week B</button>
+                </div>
             </div>
+            <div id="schedGrid" class="sc-grid"></div>
+        
+
         </section>
 
         <section id="panel-calendar" class="page-section tab-panel space-y-6" data-icon="📅" data-title="Calendar">
-            <div class="holo-card border-glow-cyan rounded-3xl p-6 md:p-8 space-y-6">
-                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                    <div>
-                        <span class="px-3 py-1 rounded-full bg-[#00f0ff]/15 border border-[#00f0ff] text-[#00f0ff] text-xs font-bold uppercase">Deadline Sync</span>
-                        <h2 id="calendarMonthTitle" class="font-cyber text-2xl md:text-3xl font-black text-white mt-2">OCTOBER 2026</h2>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <button onclick="changeCalendarMonth(-1)" class="px-4 py-2 rounded-xl bg-slate-900 border border-[#00f0ff]/40 text-[#00f0ff] font-bold text-xs">◀ Prev</button>
-                        <button onclick="changeCalendarMonth(0)" class="px-4 py-2 rounded-xl bg-[#00f0ff]/20 border border-[#00f0ff] text-[#00f0ff] font-bold text-xs">Today</button>
-                        <button onclick="changeCalendarMonth(1)" class="px-4 py-2 rounded-xl bg-slate-900 border border-[#00f0ff]/40 text-[#00f0ff] font-bold text-xs">Next ▶</button>
-                    </div>
+            <div class="rv-head">
+                <div>
+                    <h2 id="calendarMonthTitle" class="sec-title">Calendar</h2>
+                    <p class="sec-sub">Every assessment and task on the day it is due.</p>
                 </div>
-
-                <div class="grid grid-cols-7 gap-2 text-center font-cyber text-xs font-bold text-[#00f0ff] py-2">
-                    <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+                <div class="rv-btns">
+                    <button onclick="changeCalendarMonth(-1)" class="btn-ghost">‹ Prev</button>
+                    <button onclick="changeCalendarMonth(0)" class="btn-ghost">Today</button>
+                    <button onclick="changeCalendarMonth(1)" class="btn-ghost">Next ›</button>
                 </div>
-
-                <div id="calendarDaysGrid" class="grid grid-cols-7 gap-2.5"></div>
-
-                <div class="pt-6 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div>
-                        <h3 class="font-cyber text-lg font-black text-[#00ff9d]">🤖 AI WEEKLY STUDY BLUEPRINT</h3>
-                        <p class="text-xs text-slate-400">Generates a custom hour-by-hour schedule prioritizing your 0–3 day high-priority assessments over home tasks.</p>
-                    </div>
-                    <button onclick="generateSmartCalendarSchedule()" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#00ff9d] via-[#00f0ff] to-[#b026ff] text-slate-950 font-cyber font-black text-xs shadow-[0_0_25px_rgba(0,255,157,0.5)] hover:scale-105 transition">
-                        ✨ GENERATE SMART AI SCHEDULE
-                    </button>
-                </div>
-
-                <div id="aiCalendarScheduleBox" class="hidden p-6 rounded-2xl bg-slate-950/90 border border-[#00ff9d] space-y-3"></div>
             </div>
+            <div class="gr-card cal-card">
+                <div class="cal-dow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+                <div id="calendarDaysGrid" class="cal-grid"></div>
+            </div>
+            <div class="gr-card">
+                <div class="gr-card-head">
+                    <div><h3 class="sec-h3">Weekly study blueprint</h3><p class="gr-note">Builds a simple plan that puts what is due soonest first.</p></div>
+                    <button onclick="generateSmartCalendarSchedule()" class="btn-primary">✨ Generate my plan</button>
+                </div>
+                <div id="aiCalendarScheduleBox" class="hidden bp-box"></div>
+            </div>
+        
+
         </section>
 
         <section id="panel-grades" class="page-section tab-panel space-y-6" data-icon="💎" data-title="Grades">
-            <div class="grid grid-cols-1 gap-6">
-                <div class="holo-card border-glow-cyan rounded-3xl p-6 md:p-8 space-y-6">
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <div>
-                            <span class="px-3 py-1 rounded-full bg-[#00f0ff]/15 border border-[#00f0ff]/40 text-[#00f0ff] text-[10px] font-bold uppercase">Any scale: /7, /10, /21, /100 and more</span>
-                            <h2 class="font-cyber text-2xl font-black text-white mt-2">GRADE MATRIX</h2>
-                        </div>
-                        <button onclick="openGradeModal()" class="px-5 py-3 rounded-2xl bg-[#00f0ff] text-slate-950 font-cyber font-black text-xs shadow-[0_0_20px_rgba(0,240,255,0.5)] hover:scale-105 transition">
-                            + POST GRADE
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div class="p-5 rounded-2xl bg-slate-950/80 border border-[#00f0ff]/50 text-center">
-                            <div class="text-xs text-slate-400">Overall Average</div>
-                            <div id="gradeAvgDisplay" class="font-cyber text-4xl font-black text-[#00f0ff] mt-1">0.0 / 7.0</div>
-                        </div>
-                        <div class="p-5 rounded-2xl bg-slate-950/80 border border-[#b026ff]/50 text-center">
-                            <div class="text-xs text-slate-400">Assessments Graded</div>
-                            <div id="gradeCountDisplay" class="font-cyber text-4xl font-black text-[#b026ff] mt-1">0</div>
-                        </div>
-                        <div class="p-5 rounded-2xl bg-slate-950/80 border border-[#00ff9d]/50 text-center">
-                            <div class="text-xs text-slate-400">Academic Standing</div>
-                            <div id="gradeStandingDisplay" class="font-cyber text-lg font-black text-[#00ff9d] mt-3">Awaiting Grades</div>
-                        </div>
-                    </div>
-
-                    <div id="subjectGradesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
-
-                    <div id="calcCard" class="rounded-2xl p-5 space-y-3" style="background:rgba(2,6,23,.55);border:1px solid rgba(251,191,36,.4)">
-                        <div class="flex items-center justify-between flex-wrap gap-1"><h3 class="font-cyber text-base font-black text-white">🧮 WHAT DO I NEED ON THE FINAL?</h3><span class="text-[11px] text-slate-400">grade calculator</span></div>
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-                            <div><label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Subject (fills in my grade)</label><select id="gcSubj" onchange="gcFill()" class="w-full text-sm text-white"></select></div>
-                            <div><label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">My grade now (%)</label><input type="number" id="gcCur" min="0" max="150" step="0.1" oninput="gcCalc()" placeholder="e.g., 84" class="w-full text-sm text-white"></div>
-                            <div><label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Final is worth (%)</label><input type="number" id="gcW" min="1" max="100" step="1" oninput="gcCalc()" placeholder="e.g., 20" class="w-full text-sm text-white"></div>
-                            <div><label class="block text-[11px] font-bold uppercase text-slate-400 mb-1">Grade I want (%)</label><input type="number" id="gcTarget" min="0" max="100" step="1" oninput="gcCalc()" placeholder="e.g., 90" class="w-full text-sm text-white"></div>
-                        </div>
-                        <div id="gcOut" class="pt-1 text-sm text-slate-200"><span class="text-slate-400">Fill in all three boxes to see your answer.</span></div>
-                    </div>
-
-                    <div id="trendsCard" class="rounded-2xl p-5 space-y-3" style="background:rgba(2,6,23,.55);border:1px solid rgba(0,240,255,.25)">
-                        <div class="flex items-center justify-between"><h3 class="font-cyber text-base font-black text-white">📈 TRENDS</h3><span class="text-[11px] text-slate-400">how each subject changes by exam date</span></div>
-                        <div id="trendsBody"></div>
-                    </div>
-
-                    <div id="targetsCard" class="rounded-2xl p-5 space-y-3" style="background:rgba(2,6,23,.55);border:1px solid rgba(52,211,153,.3)">
-                        <div class="flex items-center justify-between flex-wrap gap-1"><h3 class="font-cyber text-base font-black text-white">🎯 GRADE TARGETS</h3><span class="text-[11px] text-slate-400">set a goal for each subject and see what your next exam must score</span></div>
-                        <div id="targetsBody"></div>
-                    </div>
-
-                    <div id="gradesListContainer" class="space-y-3"></div>
+            <div class="rv-head">
+                <div>
+                    <h2 class="sec-title">Grades</h2>
+                    <p class="sec-sub">Everything is on the IB scale, 0 to 7. Type your mark and what it was out of (28, 21, 100, 7…) and it converts for you.</p>
                 </div>
-
+                <button onclick="openGradeModal()" class="btn-primary">+ Post a grade</button>
             </div>
+            <div id="grHero"></div>
+            <div id="subjectGradesGrid" class="gr-subjects"></div>
+            <div class="gr-two">
+                <div id="trendsCard" class="gr-card">
+                    <div class="gr-card-head"><h3 class="sec-h3">Trends</h3><span class="gr-note">how each subject moves over time</span></div>
+                    <div id="trendsBody"></div>
+                </div>
+                <div id="targetsCard" class="gr-card">
+                    <div class="gr-card-head"><h3 class="sec-h3">Goals &amp; what you need next</h3><span class="gr-note">set a 0–7 goal per subject</span></div>
+                    <div id="targetsBody"></div>
+                </div>
+            </div>
+            <div class="gr-card">
+                <div class="gr-card-head"><h3 class="sec-h3">All grades</h3><span class="gr-note">newest first</span></div>
+                <div id="gradesListContainer"></div>
+            </div>
+
         </section>
 
         <section id="panel-timer" class="page-section tab-panel space-y-6" data-icon="☕" data-title="Focus Timer">
-            <div class="max-w-2xl mx-auto holo-card border-glow-cyan rounded-3xl p-8 md:p-10 text-center space-y-8">
+            <div class="rv-head">
                 <div>
-                    <span class="px-3 py-1 rounded-full bg-[#00f0ff]/15 border border-[#00f0ff]/40 text-[#00f0ff] text-xs font-bold uppercase">Focus Chamber</span>
-                    <h2 class="font-cyber text-3xl font-black text-white mt-2 epic-glowing-title">FOCUS STUDY TIMER</h2>
-                </div>
-
-                <div class="flex flex-wrap justify-center gap-3">
-                    <button onclick="setTimerMinutes(25)" class="px-4 py-2 rounded-xl bg-[#00f0ff]/15 hover:bg-[#00f0ff]/30 border border-[#00f0ff] text-[#00f0ff] font-cyber text-xs font-bold transition">25m Pomodoro</button>
-                    <button onclick="setTimerMinutes(45)" class="px-4 py-2 rounded-xl bg-[#b026ff]/15 hover:bg-[#b026ff]/30 border border-[#b026ff] text-[#b026ff] font-cyber text-xs font-bold transition">45m Deep Study</button>
-                    <button onclick="setTimerMinutes(15)" class="px-4 py-2 rounded-xl bg-[#00ff9d]/15 hover:bg-[#00ff9d]/30 border border-[#00ff9d] text-[#00ff9d] font-cyber text-xs font-bold transition">15m Quick Review</button>
-                </div>
-
-                <div class="relative w-[280px] h-[280px] mx-auto flex items-center justify-center">
-                    <svg class="w-full h-full -rotate-90 transform" viewBox="0 0 280 280">
-                        <circle cx="140" cy="140" r="120" stroke="rgba(148, 163, 184, 0.15)" stroke-width="12" fill="transparent" />
-                        <circle id="timerRingCircle" cx="140" cy="140" r="120" stroke="url(#timerGrad)" stroke-width="12" stroke-linecap="round" fill="transparent" stroke-dasharray="753.98" stroke-dashoffset="0" style="filter: drop-shadow(0 0 12px #00f0ff); transition: stroke-dashoffset 0.8s linear;" />
-                        <defs>
-                            <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#00f0ff" />
-                                <stop offset="50%" stop-color="#00ff9d" />
-                                <stop offset="100%" stop-color="#ff007f" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center space-y-1">
-                        <div class="text-4xl animate-bounce">☕</div>
-                        <div id="timerDigitalReadout" class="font-cyber text-5xl font-black text-white tracking-wider epic-glowing-title">25:00</div>
-                        <div id="timerStateSubtext" class="text-xs font-bold uppercase tracking-widest text-[#00f0ff]">READY TO FOCUS</div>
-                    </div>
-                </div>
-
-                <div class="flex justify-center gap-4">
-                    <button id="timerToggleBtn" onclick="toggleFocusTimer()" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#00f0ff] to-[#00ff9d] text-slate-950 font-cyber font-black text-sm shadow-[0_0_25px_rgba(0,240,255,0.6)] hover:scale-105 transition">
-                        START FOCUS
-                    </button>
-                    <button onclick="resetFocusTimer()" class="px-6 py-4 rounded-2xl bg-slate-900 border border-slate-700 text-slate-300 font-cyber font-bold text-sm hover:border-[#ff007f] hover:text-[#ff007f] transition">
-                        RESET
-                    </button>
-                </div>
-
-                <div class="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                    <label class="flex items-center space-x-2.5 cursor-pointer">
-                        <input type="checkbox" id="chimeToggleCheck" checked class="w-4 h-4 accent-[#00ff9d] rounded">
-                        <span class="text-slate-300 font-semibold">Enable Harmonic Chime on Completion</span>
-                    </label>
-                    <button onclick="playHarmonicChime()" class="px-4 py-2 rounded-xl bg-[#b026ff]/20 border border-[#b026ff] text-[#b026ff] font-bold hover:bg-[#b026ff]/30 transition">
-                        🔔 Test Harmonic Chime
-                    </button>
+                    <h2 class="sec-title">Focus timer</h2>
+                    <p class="sec-sub">Pick a length, press start, and put everything else away.</p>
                 </div>
             </div>
+            <div class="gr-card tm-card">
+                <div class="tm-ringwrap">
+                    <svg class="tm-ring" viewBox="0 0 280 280" aria-hidden="true">
+                        <circle cx="140" cy="140" r="120" class="trk" />
+                        <circle id="timerRingCircle" cx="140" cy="140" r="120" stroke="url(#timerGrad)" stroke-width="12" stroke-linecap="round" fill="transparent" stroke-dasharray="753.98" stroke-dashoffset="0" style="transition: stroke-dashoffset 0.8s linear;" transform="rotate(-90 140 140)" />
+                        <defs><linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:var(--ac)" /><stop offset="100%" style="stop-color:var(--lo)" /></linearGradient></defs>
+                    </svg>
+                    <div class="tm-center">
+                        <div class="tm-cup">☕</div>
+                        <div id="timerDigitalReadout" class="tm-time">25:00</div>
+                        <div id="timerStateSubtext" class="tm-state">READY TO FOCUS</div>
+                    </div>
+                </div>
+                <div class="tm-side">
+                    <div>
+                        <div class="m-label">Session length</div>
+                        <div class="seg seg--wrap">
+                            <button onclick="setTimerMinutes(25)" class="seg-btn">25 min<small>Pomodoro</small></button>
+                            <button onclick="setTimerMinutes(45)" class="seg-btn">45 min<small>Deep study</small></button>
+                            <button onclick="setTimerMinutes(15)" class="seg-btn">15 min<small>Quick review</small></button>
+                        </div>
+                    </div>
+                    <div class="tm-actions">
+                        <button id="timerToggleBtn" onclick="toggleFocusTimer()" class="btn-primary tm-start">START FOCUS</button>
+                        <button onclick="resetFocusTimer()" class="btn-ghost tm-reset">Reset</button>
+                    </div>
+                    <div class="tm-chime">
+                        <label class="flex items-center gap-2.5 cursor-pointer"><input type="checkbox" id="chimeToggleCheck" checked class="w-4 h-4 rounded"><span>Play a soft chime when the session ends</span></label>
+                        <button onclick="playHarmonicChime()" class="btn-ghost">🔔 Test chime</button>
+                    </div>
+                </div>
+            </div>
+        
+
         </section>
 
         <section id="panel-cards" class="page-section tab-panel space-y-6" data-icon="🃏" data-title="Flashcards">
-            <div class="holo-card border-glow-cyan rounded-3xl p-6 md:p-8 space-y-5">
+            <div class="rv-head">
                 <div>
-                    <span class="px-3 py-1 rounded-full bg-[#34d399]/20 border border-[#34d399] text-[#34d399] font-cyber text-xs font-bold uppercase">Spaced Repetition</span>
-                    <h2 class="font-cyber text-2xl md:text-3xl font-black text-white mt-2">🃏 FLASHCARDS · SPACED REPETITION</h2>
-                    <p class="text-sm text-slate-300 mt-1">Cards you know come back later (days, then weeks). Cards you miss come back sooner. Study a few minutes a day and it sticks.</p>
+                    <h2 class="sec-title">Flashcards</h2>
+                    <p class="sec-sub">Spaced repetition: cards you know come back later, cards you miss come back sooner. A few minutes a day is enough.</p>
                 </div>
-                <div id="cdStats" class="grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+            </div>
+            <div id="cdStats" class="cd-stats"></div>
+            <div class="gr-card">
                 <div id="cdDecks" class="flex flex-wrap gap-2"></div>
                 <div id="cdStudy"></div>
             </div>
-
-            <div class="holo-card rounded-3xl p-6 md:p-8 space-y-4">
-                <h3 class="font-cyber text-lg font-black text-white">➕ Add a card</h3>
+            <div class="gr-card">
+                <div class="gr-card-head"><h3 class="sec-h3">Add a card</h3><span class="gr-note">Type the front, press Enter, type the back, press Enter.</span></div>
                 <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
-                    <input type="text" id="cdDeckIn" list="gradeSubjects" autocomplete="off" placeholder="Subject / deck" class="text-sm text-white md:col-span-1">
-                    <input type="text" id="cdFront" placeholder="Front (question or term)" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('cdBack').focus();}" class="text-sm text-white md:col-span-2">
-                    <input type="text" id="cdBack" placeholder="Back (answer), then press Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();cdAdd();}" class="text-sm text-white md:col-span-2">
+                    <input type="text" id="cdDeckIn" list="gradeSubjects" autocomplete="off" placeholder="Subject / deck" class="text-sm md:col-span-1">
+                    <input type="text" id="cdFront" placeholder="Front (question or term)" onkeydown="if(event.key==='Enter'){event.preventDefault();document.getElementById('cdBack').focus();}" class="text-sm md:col-span-2">
+                    <input type="text" id="cdBack" placeholder="Back (answer), then press Enter" onkeydown="if(event.key==='Enter'){event.preventDefault();cdAdd();}" class="text-sm md:col-span-2">
                 </div>
-                <div class="flex flex-wrap gap-2 items-center">
-                    <button onclick="cdAdd()" class="btn-primary">+ Add card</button>
-                    <span class="text-xs text-slate-400">Tip: type the front, press Enter, type the back, press Enter. The next card is ready.</span>
-                </div>
-                <details class="rounded-2xl border border-slate-700 p-4">
-                    <summary class="cursor-pointer text-sm font-bold text-[#00f0ff]">Add many at once (paste from Quizlet, Sheets or a list)</summary>
-                    <p class="text-xs text-slate-400 mt-2">One card per line. Put the front and back apart with a | or a Tab, like <code>mitochondria | powerhouse of the cell</code>.</p>
-                    <textarea id="cdBulk" rows="5" placeholder="front | back&#10;front | back" class="w-full text-sm text-white mt-2"></textarea>
+                <div class="flex flex-wrap gap-2 items-center"><button onclick="cdAdd()" class="btn-primary">+ Add card</button></div>
+                <details class="cd-bulk">
+                    <summary>Add many at once (paste from Quizlet, Sheets or a list)</summary>
+                    <p class="gr-note" style="margin-top:.6rem">One card per line. Put the front and back apart with a | or a Tab, like <code>mitochondria | powerhouse of the cell</code>.</p>
+                    <textarea id="cdBulk" rows="5" placeholder="front | back&#10;front | back" class="w-full text-sm mt-2"></textarea>
                     <button onclick="cdImport()" class="btn-ghost mt-2">Import these cards</button>
                 </details>
             </div>
-
-            <div class="holo-card rounded-3xl p-6 md:p-8 space-y-3">
-                <h3 class="font-cyber text-lg font-black text-white">📚 All cards</h3>
+            <div class="gr-card">
+                <div class="gr-card-head"><h3 class="sec-h3">All cards</h3></div>
                 <div id="cdList" class="space-y-2"></div>
             </div>
+        
+
         </section>
 
         <section id="panel-notes" class="page-section tab-panel space-y-6" data-icon="📝" data-title="Notes">
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-3">
+            <div class="rv-head">
                 <div>
-                    <h2 class="font-cyber text-white">📝 Notes</h2>
-                    <p class="text-xs text-slate-400 mt-1">Write class notes for any subject. They save automatically on this computer. Use ⬇ Backup to keep or move them.</p>
+                    <h2 class="sec-title">Notes</h2>
+                    <p class="sec-sub">Class notes for any subject. They save as you type, on this computer. Use Backup to keep or move them.</p>
                 </div>
                 <button onclick="noteNew()" class="btn-primary">+ New note</button>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-                <div class="holo-card rounded-3xl p-4 space-y-3 lg:col-span-1">
-                    <input type="text" id="noteSearch" oninput="noteQuery=this.value; noteRefreshList()" placeholder="Search notes…" class="w-full text-sm text-white">
-                    <div id="noteList" class="space-y-2 max-h-[60vh] overflow-y-auto pr-1"></div>
+                <div class="gr-card nt-list lg:col-span-1">
+                    <input type="text" id="noteSearch" oninput="noteQuery=this.value; noteRefreshList()" placeholder="Search notes…" class="w-full text-sm">
+                    <div id="noteList" class="space-y-2 max-h-[62vh] overflow-y-auto pr-1"></div>
                 </div>
-                <div id="noteEditor" class="holo-card rounded-3xl p-5 space-y-3 lg:col-span-2"></div>
+                <div id="noteEditor" class="gr-card nt-editor lg:col-span-2"></div>
             </div>
+        
+
         </section>
 
         <section id="panel-ai" class="page-section tab-panel space-y-6" data-icon="🧭" data-title="AI Study Assistant">
@@ -1352,83 +1737,46 @@ html.dev-small #sideRail { right: 6px; }
         </section>
 
         <section id="panel-quiz" class="page-section tab-panel space-y-6" data-icon="🎯" data-title="Quiz Arena">
-            <div class="holo-card border-glow-magenta rounded-3xl p-8 relative overflow-hidden">
-                <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-                    <div class="space-y-2">
-                        <div class="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-[#ff007f]/20 border border-[#ff007f] text-[#ff007f] text-xs font-bold">
-                            <span>☕</span>
-                            <span>🔄 Every quiz pulls questions you haven't seen yet today, and the pool refreshes every day!</span>
-                        </div>
-                        <h2 class="font-cyber text-3xl md:text-4xl font-black text-white epic-glowing-title">
-                            GRAND QUIZ ME ARENA ☕
-                        </h2>
-                        <p class="text-xs md:text-sm text-slate-300">
-                            Test yourself on your core school subjects or jump into Video Game Lore, Weird Nature, and Universe Trivia!
-                        </p>
-                    </div>
-                    <button onclick="startFreshQuiz(currentQuizDeck)" class="px-6 py-4 rounded-2xl bg-gradient-to-r from-[#ff007f] via-[#b026ff] to-[#00f0ff] text-white font-cyber font-black text-xs shadow-[0_0_25px_rgba(255,0,127,0.5)] hover:scale-105 transition">
-                        🎲 SHUFFLE BRAND NEW QUIZ
-                    </button>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-2 mt-6 pt-6 border-t border-slate-800">
-                    <span class="text-xs font-bold uppercase tracking-widest text-slate-400 mr-1">Questions:</span>
-                    <button id="quizLen-10" onclick="setQuizLength(10)">10</button>
-                    <button id="quizLen-15" onclick="setQuizLength(15)">15</button>
-                    <button id="quizLen-25" onclick="setQuizLength(25)">25</button>
-                </div>
-                <div class="flex flex-wrap gap-2.5 mt-4">
-                    <button onclick="startFreshQuiz('videogames')" id="pill-videogames" class="quiz-pill px-4 py-2.5 rounded-xl font-bold text-xs border border-[#00f0ff] bg-[#00f0ff]/20 text-[#00f0ff] transition">
-                        🎮 Video Game Lore
-                    </button>
-                    <button onclick="startFreshQuiz('weirdnature')" id="pill-weirdnature" class="quiz-pill px-4 py-2.5 rounded-xl font-bold text-xs border border-[#00ff9d]/50 bg-slate-900 text-[#00ff9d] transition">
-                        🍄 Weird Nature & Science
-                    </button>
-                    <button onclick="startFreshQuiz('biology')" id="pill-biology" class="quiz-pill px-4 py-2.5 rounded-xl font-bold text-xs border border-slate-700 bg-slate-900 text-slate-300 transition">
-                        🧬 Biology
-                    </button>
-                    <button onclick="startFreshQuiz('humanities')" id="pill-humanities" class="quiz-pill px-4 py-2.5 rounded-xl font-bold text-xs border border-slate-700 bg-slate-900 text-slate-300 transition">
-                        🏛️ Humanities
-                    </button>
-                    <button onclick="startFreshQuiz('spanish')" id="pill-spanish" class="quiz-pill px-4 py-2.5 rounded-xl font-bold text-xs border border-slate-700 bg-slate-900 text-slate-300 transition">
-                        🇪🇸 Spanish
-                    </button>
-                    <button onclick="startFreshQuiz('random')" id="pill-random" class="quiz-pill px-4 py-2.5 rounded-xl font-bold text-xs border border-[#ff007f]/50 bg-slate-900 text-[#ff007f] transition">
-                        🎲 Random Universe Trivia
-                    </button>
-                </div>
-            </div>
-
-            <div id="quizArenaBox" class="holo-card border-glow-cyan rounded-3xl p-8 space-y-6">
-                <div class="flex items-center justify-between">
-                    <span id="quizDeckBadge" class="px-3.5 py-1 rounded-full bg-[#00f0ff]/20 border border-[#00f0ff] text-[#00f0ff] font-cyber text-xs font-bold uppercase">DECK: VIDEO GAME LORE</span>
-                    <span id="quizStepCounter" class="font-cyber text-sm font-bold text-[#00ff9d]">QUESTION 1 OF 4</span>
-                </div>
-
-                <div class="p-6 rounded-2xl bg-slate-950/90 border border-[#00f0ff]/40">
-                    <h3 id="quizPromptHeading" class="text-xl md:text-2xl font-extrabold text-white leading-snug">Loading question...</h3>
-                </div>
-
-                <div id="quizOptionsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
-
-                <div id="quizInstantFeedback" class="hidden p-4 rounded-2xl font-bold text-sm text-center"></div>
-            </div>
-
-            <div id="quizVictoryCard" class="hidden holo-card border-glow-emerald rounded-3xl p-10 text-center space-y-6">
-                <div class="text-6xl animate-bounce">🏆 ☕</div>
-                <h3 class="font-cyber text-3xl font-black text-white epic-glowing-title">QUIZ COMPLETE!</h3>
-                <p id="quizScoreSummary" class="text-lg font-bold text-[#00ff9d]">You scored 4 / 4 (100%)</p>
-                <div class="inline-block p-5 rounded-2xl bg-slate-950 border border-[#00f0ff]">
-                    <div class="text-xs text-slate-400 uppercase">Estimated 1–7 Scale Mastery</div>
-                    <div id="quizScaleEquivalent" class="font-cyber text-2xl font-black text-[#00f0ff] mt-1">7.0 / 7.0 — GRANDMASTER</div>
-                </div>
-                <div id="quizMissedList" class="text-left max-w-xl mx-auto"></div>
+            <div class="rv-head">
                 <div>
-                    <button onclick="startFreshQuiz(currentQuizDeck)" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-[#00ff9d] to-[#00f0ff] text-slate-950 font-cyber font-black text-xs shadow-[0_0_25px_rgba(0,255,157,0.5)]">
-                        🔄 PLAY AGAIN WITH NEW QUESTIONS
-                    </button>
+                    <h2 class="sec-title">Quiz arena</h2>
+                    <p class="sec-sub">Test yourself on school subjects or take a break with trivia. Every round pulls questions you have not seen yet today.</p>
+                </div>
+                <button onclick="startFreshQuiz(currentQuizDeck)" class="btn-primary">🎲 Shuffle a new quiz</button>
+            </div>
+            <div class="gr-card">
+                <div class="qz-row"><span class="m-label" style="margin:0">Questions</span>
+                    <button id="quizLen-10" onclick="setQuizLength(10)">10</button><button id="quizLen-15" onclick="setQuizLength(15)">15</button><button id="quizLen-25" onclick="setQuizLength(25)">25</button>
+                </div>
+                <div class="qz-row">
+                    <button onclick="startFreshQuiz('videogames')" id="pill-videogames" class="quiz-pill">🎮 Video game lore</button>
+                    <button onclick="startFreshQuiz('weirdnature')" id="pill-weirdnature" class="quiz-pill">🍄 Weird nature &amp; science</button>
+                    <button onclick="startFreshQuiz('biology')" id="pill-biology" class="quiz-pill">🧬 Biology</button>
+                    <button onclick="startFreshQuiz('humanities')" id="pill-humanities" class="quiz-pill">🏛️ Humanities</button>
+                    <button onclick="startFreshQuiz('spanish')" id="pill-spanish" class="quiz-pill">🇪🇸 Spanish</button>
+                    <button onclick="startFreshQuiz('random')" id="pill-random" class="quiz-pill">🎲 Universe trivia</button>
                 </div>
             </div>
+            <div id="quizArenaBox" class="gr-card qz-arena">
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                    <span id="quizDeckBadge" class="gr-chip" style="--t:var(--ac)">DECK</span>
+                    <span id="quizStepCounter" class="qz-step">QUESTION 1 OF 10</span>
+                </div>
+                <div class="qz-bar"><i id="quizProgress"></i></div>
+                <div class="qz-q"><h3 id="quizPromptHeading">Loading question...</h3></div>
+                <div id="quizOptionsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                <div id="quizInstantFeedback" class="hidden qz-fb"></div>
+            </div>
+            <div id="quizVictoryCard" class="hidden gr-card qz-win">
+                <div class="qz-trophy">🏆</div>
+                <h3 class="sec-title">Quiz complete</h3>
+                <p id="quizScoreSummary" class="qz-score"></p>
+                <div class="qz-scale"><span class="k">Estimated IB level</span><b id="quizScaleEquivalent">7.0 / 7.0</b></div>
+                <div id="quizMissedList" class="text-left max-w-xl mx-auto w-full"></div>
+                <div><button onclick="startFreshQuiz(currentQuizDeck)" class="btn-primary">🔄 Play again with new questions</button></div>
+            </div>
+        
+
         </section>
 
         <section id="panel-game" class="page-section tab-panel space-y-6" data-icon="🎲" data-title="Sovereign Roll">
@@ -1551,43 +1899,48 @@ html.dev-small #sideRail { right: 6px; }
         </div>
     </div>
 
-    <div id="modalGrade" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="holo-card border-glow-cyan p-6 rounded-3xl max-w-md w-full space-y-3 max-h-[92vh] overflow-y-auto">
-            <h3 class="font-cyber text-lg font-black text-white">POST A GRADE</h3>
-            <datalist id="gradeSubjects"></datalist>
-            <input type="text" id="inputGradeSubj" list="gradeSubjects" autocomplete="off" placeholder="Subject (e.g., Chemistry)" class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-[#00f0ff]/40 text-sm text-white">
-            <input type="text" id="inputGradeName" placeholder="Assessment title (e.g., Unit 3 test)" class="w-full px-4 py-3 rounded-xl bg-slate-950 border border-[#00f0ff]/40 text-sm text-white">
+    <div id="modalGrade" class="fixed inset-0 z-50 hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="m-card max-w-md w-full space-y-4 max-h-[92vh] overflow-y-auto">
             <div>
-                <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Your score and what it is out of</div>
+                <h3 class="sec-h3">Post a grade</h3>
+                <p class="m-sub">Enter your mark and what it was out of. It is converted to the IB 0–7 scale automatically.</p>
+            </div>
+            <datalist id="gradeSubjects"></datalist>
+            <input type="text" id="inputGradeSubj" list="gradeSubjects" autocomplete="off" placeholder="Subject (e.g., Biology)" class="fld w-full text-sm">
+            <input type="text" id="inputGradeName" placeholder="Assessment title (e.g., Unit 3 test)" class="fld w-full text-sm">
+            <div>
+                <div class="m-label">Your mark, and what it is out of</div>
                 <div class="flex items-center gap-2">
-                    <input type="number" id="inputGradeVal" min="0" step="0.01" placeholder="Score" class="flex-1 min-w-0 px-4 py-3 rounded-xl bg-slate-950 border border-[#00f0ff]/40 text-sm text-white">
-                    <span class="text-slate-400 font-bold">/</span>
-                    <input type="number" id="inputGradeMax" min="0.01" step="0.01" value="7" list="gradeScales" placeholder="Out of" class="flex-1 min-w-0 px-4 py-3 rounded-xl bg-slate-950 border border-[#00f0ff]/40 text-sm text-white">
+                    <input type="number" id="inputGradeVal" min="0" step="0.01" placeholder="Mark" oninput="gradePreview()" class="fld flex-1 min-w-0 text-sm">
+                    <span class="m-slash">out of</span>
+                    <input type="number" id="inputGradeMax" min="0.01" step="0.01" value="7" list="gradeScales" placeholder="Total" oninput="gradePreview()" class="fld flex-1 min-w-0 text-sm">
                 </div>
-                <datalist id="gradeScales"><option value="7"><option value="10"><option value="20"><option value="21"><option value="25"><option value="30"><option value="40"><option value="50"><option value="100"></datalist>
+                <datalist id="gradeScales"><option value="7"><option value="10"><option value="20"><option value="21"><option value="25"><option value="28"><option value="30"><option value="40"><option value="50"><option value="100"></datalist>
                 <div class="flex flex-wrap gap-1.5 mt-2">
-                    <button type="button" onclick="setGradeMax(7)" class="px-2.5 py-1 rounded-lg border border-slate-700 text-[11px] font-bold text-slate-300 hover:border-[#00f0ff]">/ 7</button>
-                    <button type="button" onclick="setGradeMax(10)" class="px-2.5 py-1 rounded-lg border border-slate-700 text-[11px] font-bold text-slate-300 hover:border-[#00f0ff]">/ 10</button>
-                    <button type="button" onclick="setGradeMax(20)" class="px-2.5 py-1 rounded-lg border border-slate-700 text-[11px] font-bold text-slate-300 hover:border-[#00f0ff]">/ 20</button>
-                    <button type="button" onclick="setGradeMax(21)" class="px-2.5 py-1 rounded-lg border border-slate-700 text-[11px] font-bold text-slate-300 hover:border-[#00f0ff]">/ 21</button>
-                    <button type="button" onclick="setGradeMax(50)" class="px-2.5 py-1 rounded-lg border border-slate-700 text-[11px] font-bold text-slate-300 hover:border-[#00f0ff]">/ 50</button>
-                    <button type="button" onclick="setGradeMax(100)" class="px-2.5 py-1 rounded-lg border border-slate-700 text-[11px] font-bold text-slate-300 hover:border-[#00f0ff]">/ 100</button>
+                    <button type="button" onclick="setGradeMax(7);gradePreview()" class="m-chip">7</button>
+                    <button type="button" onclick="setGradeMax(10);gradePreview()" class="m-chip">10</button>
+                    <button type="button" onclick="setGradeMax(20);gradePreview()" class="m-chip">20</button>
+                    <button type="button" onclick="setGradeMax(21);gradePreview()" class="m-chip">21</button>
+                    <button type="button" onclick="setGradeMax(28);gradePreview()" class="m-chip">28</button>
+                    <button type="button" onclick="setGradeMax(50);gradePreview()" class="m-chip">50</button>
+                    <button type="button" onclick="setGradeMax(100);gradePreview()" class="m-chip">100</button>
                 </div>
             </div>
+            <div id="gradePreview" class="m-preview"></div>
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Date of the exam</div>
-                    <input type="date" id="inputGradeDate" class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-[#00f0ff]/40 text-sm text-white">
+                    <div class="m-label">Date of the exam</div>
+                    <input type="date" id="inputGradeDate" class="fld w-full text-sm">
                 </div>
                 <div>
-                    <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Weight</div>
-                    <input type="number" id="inputGradeWeight" min="0.1" step="0.1" value="10" class="w-full px-3 py-3 rounded-xl bg-slate-950 border border-[#00f0ff]/40 text-sm text-white">
+                    <div class="m-label">Weight</div>
+                    <input type="number" id="inputGradeWeight" min="0.1" step="0.1" value="1" class="fld w-full text-sm">
                 </div>
             </div>
-            <p class="text-[11px] text-slate-500">Weight is how much the exam counts: use the % of your final grade (like 20 for a final) or any number. A weight of 20 counts twice as much as 10.</p>
+            <p class="m-sub">Weight is how much it counts compared with a normal assessment: 1 is normal, 2 counts double, 0.5 counts half.</p>
             <div class="flex gap-3 pt-1">
-                <button onclick="closeModal('modalGrade')" class="flex-1 py-3 rounded-xl bg-slate-800 text-xs font-bold text-slate-300">Cancel</button>
-                <button onclick="saveNewGrade()" class="flex-1 py-3 rounded-xl bg-[#00f0ff] text-slate-950 font-cyber font-black text-xs">Save Grade</button>
+                <button onclick="closeModal('modalGrade')" class="btn-ghost flex-1" style="padding:.8rem">Cancel</button>
+                <button onclick="saveNewGrade()" class="btn-primary flex-1" style="padding:.8rem">Save grade</button>
             </div>
         </div>
     </div>
@@ -3090,13 +3443,11 @@ Rules:
             if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
             const io = new IntersectionObserver(entries => {
                 entries.forEach(en => {
-                    if (!en.isIntersecting) return;
-                    const el = en.target; io.unobserve(el);
-                    el.classList.add('in');
-                    setTimeout(() => el.classList.remove('rv', 'in', 'from-r', 'from-u'), 1500); // hand hover/transform back to the element
-                    el.style.removeProperty('--d');
+                    // plays every time: slides in when it enters the screen, resets when it leaves, so it plays again on the way back
+                    if (en.isIntersecting) en.target.classList.add('in');
+                    else if (en.intersectionRatio === 0) en.target.classList.remove('in');
                 });
-            }, { threshold: 0.08, rootMargin: '0px 0px -6% 0px' });
+            }, { threshold: [0, 0.08], rootMargin: '0px 0px -6% 0px' });
             document.querySelectorAll('.page-section').forEach(sec => {
                 let n = 0;
                 const add = (el, dir) => { el.classList.add('rv'); if (dir) el.classList.add(dir); el.style.setProperty('--d', Math.min(n++ * 0.09, 0.4) + 's'); io.observe(el); };
@@ -3126,7 +3477,6 @@ Rules:
         function initDevice() {
             const saved = deviceSaved();
             applyDevice(saved || deviceAuto());
-            if (!saved) document.getElementById('deviceModal').classList.remove('hidden');
         }
         // STUDY CHAT: searches the web, then summarizes what it finds (with the free AI when available, otherwise by picking the key sentences)
         async function webSearchPages(topic) {
@@ -3483,7 +3833,7 @@ Rules:
                 const vic = document.getElementById('quizVictoryCard');
                 vic.classList.remove('hidden');
                 const pct = Math.round((quizPoints / activeQuizList.length) * 100);
-                document.getElementById('quizScoreSummary').innerText = `You scored ${quizPoints} / ${activeQuizList.length} (${pct}%)`;
+                document.getElementById('quizScoreSummary').innerText = `You scored ${quizPoints} / ${activeQuizList.length}`;
                 const ibScore = (1 + (quizPoints / activeQuizList.length) * 6).toFixed(1);
                 document.getElementById('quizScaleEquivalent').innerText = `${ibScore} / 7.0 — ${pct >= 75 ? 'MASTER 🌟' : 'SOLID RUN ⚡'}`;
                 const missedBox = document.getElementById('quizMissedList');
@@ -3834,6 +4184,510 @@ Rules:
             srPrepare();
         });
     </script>
+
+
+<script>
+/* =====================================================================
+   REVAMP: refined assessments + subjects, and grades on the IB 0-7 scale
+   (loaded after the main script, so these replace the older versions)
+   ===================================================================== */
+
+// ---------- calm subject palette (replaces the neon one) ----------
+const NEW_PAL = ['#4f7ca8', '#7b6aa8', '#a5608f', '#2f7d5b', '#b98a2c', '#b5586b', '#2f8a8a', '#b5654a'];
+const OLD_PAL = ['#60a5fa', '#a78bfa', '#e879f9', '#34d399', '#fbbf24', '#fb7185', '#22d3ee', '#f97316'];
+SUBJECT_COLORS.splice(0, SUBJECT_COLORS.length, ...NEW_PAL);
+TREND_COLORS.splice(0, TREND_COLORS.length, ...NEW_PAL);
+subjectDraft.color = NEW_PAL[0];
+function softColor(c) { const i = OLD_PAL.indexOf(String(c || '').toLowerCase()); return i >= 0 ? NEW_PAL[i] : (c || NEW_PAL[0]); }
+const _ensureShapeOld = ensureStateShape;
+ensureStateShape = function () { _ensureShapeOld(); (state.subjects || []).forEach(s => { s.color = softColor(s.color); }); };
+function subjectColor(name, idx) { const s = state.subjects.find(x => x.name.toLowerCase() === String(name).toLowerCase()); return s ? softColor(s.color) : NEW_PAL[idx % NEW_PAL.length]; }
+
+// ---------- priority (used by Assessments and Today) ----------
+function getPriorityMeta(dateStr) {
+    if (!dateStr) return { label: 'Later', border: '', badge: 'pri-badge lvl-low', days: 99, level: 'low', when: 'No date' };
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    const n = Math.round((new Date(dateStr + 'T00:00:00') - t) / 86400000);
+    const level = n <= 3 ? 'high' : n <= 12 ? 'medium' : 'low';
+    const when = n < 0 ? 'Overdue · ' + (-n) + 'd' : n === 0 ? 'Due today' : n === 1 ? 'Tomorrow' : 'In ' + n + ' days';
+    const label = level === 'high' ? 'Urgent · ' + (n <= 0 ? 'due now' : n + 'd') : level === 'medium' ? 'Soon · ' + n + 'd' : 'Later · ' + n + 'd';
+    return { label, border: '', badge: 'pri-badge lvl-' + level, days: n, level, when };
+}
+
+// ---------- subjects ----------
+function renderSubjectChips() {
+    const box = document.getElementById('subjectChipGrid'); if (!box) return;
+    if (!state.subjects.length) {
+        box.innerHTML = `<div class="as-empty"><div class="ic">📚</div><div><b>No subjects yet</b><p>Add the classes you take, then give each one a NotebookLM link.</p></div><button onclick="openSubjectModal()" class="btn-primary">+ Add your first subject</button></div>`;
+        return;
+    }
+    box.innerHTML = state.subjects.map(s => {
+        const n = state.assessments.filter(a => !a.done && String(a.subject || '').toLowerCase() === s.name.toLowerCase()).length;
+        const link = s.link ? `<a href="${esc(s.link)}" target="_blank" rel="noopener">NotebookLM ↗</a>` : `<button onclick="openSubjectModal('${s.id}', true)">+ NotebookLM link</button>`;
+        return `<div class="sj-card" style="--c:${esc(softColor(s.color))}">
+            <span class="sj-ic">${esc(s.icon)}</span>
+            <div class="sj-txt"><b>${esc(s.name)}</b><small>${n ? n + ' upcoming' : 'Nothing due'}</small><div class="sj-links">${link}<button onclick="openSubjectModal('${s.id}')">Edit</button></div></div>
+            <button class="sj-add" onclick="openAssessmentModal(getSubject('${s.id}').name)" title="Add a ${esc(s.name)} assessment" aria-label="Add a ${esc(s.name)} assessment">+</button>
+        </div>`;
+    }).join('');
+}
+
+// ---------- assessments ----------
+const AS_MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'], AS_DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+function renderAssessments() {
+    const box = document.getElementById('assessmentsContainer'), stats = document.getElementById('asStats'); if (!box) return;
+    const list = state.assessments.slice().sort((a, b) => (a.done - b.done) || String(a.due).localeCompare(String(b.due)));
+    const open = list.filter(a => !a.done), cnt = { high: 0, medium: 0, low: 0 };
+    open.forEach(a => cnt[getPriorityMeta(a.due).level]++);
+    if (stats) {
+        const next = open[0], np = next ? getPriorityMeta(next.due) : null;
+        stats.innerHTML = `
+            <div class="as-stat as-stat--next"><span class="k">Next up</span><b>${next ? esc(next.title) : 'Nothing due'}</b><small>${next ? esc(next.subject) + ' · ' + np.when : 'You are all caught up'}</small></div>
+            <div class="as-stat" style="--c:var(--hi)"><span class="k">Urgent</span><b>${cnt.high}</b><small>3 days or less</small></div>
+            <div class="as-stat" style="--c:var(--mid)"><span class="k">Soon</span><b>${cnt.medium}</b><small>within 12 days</small></div>
+            <div class="as-stat" style="--c:var(--lo)"><span class="k">Later</span><b>${cnt.low}</b><small>more than 12 days</small></div>
+            <div class="as-stat"><span class="k">Done early</span><b>${list.length - open.length}</b><small>nicely done</small></div>`;
+    }
+    if (!list.length) {
+        box.innerHTML = `<div class="as-empty"><div class="ic">🗓️</div><div><b>No assessments yet</b><p>Add a test, quiz or project and it will show up here, sorted by date.</p></div><button onclick="openAssessmentModal('')" class="btn-primary">+ Add assessment</button></div>`;
+        return;
+    }
+    box.innerHTML = list.map(a => {
+        const p = getPriorityMeta(a.due), d = new Date(a.due + 'T00:00:00'), ok = !isNaN(d);
+        const sub = state.subjects.find(s => s.name.toLowerCase() === String(a.subject).toLowerCase()), c = sub ? softColor(sub.color) : '#7d8798';
+        return `<article class="as-card lvl-${p.level} ${a.done ? 'is-done' : ''}" style="--c:${esc(c)}">
+            <div class="as-date"><span class="m">${ok ? AS_MON[d.getMonth()] : '—'}</span><span class="d">${ok ? d.getDate() : ''}</span><span class="w">${ok ? AS_DOW[d.getDay()] : ''}</span></div>
+            <div class="as-body">
+                <div class="as-top"><span class="as-subj"><i></i>${esc(a.subject)}</span><span class="as-pill">${a.done ? 'Done' : esc(p.when)}</span></div>
+                <h4>${esc(a.title)}</h4>
+                <div class="as-meta">${esc(gradeDateLabel(a.due))}</div>
+            </div>
+            <div class="as-actions">
+                <button class="as-done" onclick="toggleAssessDone(${a.id})">${a.done ? '↺ Undo' : '✓ Done early'}</button>
+                <button class="as-del" onclick="removeAssessment(${a.id})">Delete</button>
+            </div>
+        </article>`;
+    }).join('');
+}
+
+/* =====================================================================
+   GRADES: IB scale 0-7, no percentages
+   ===================================================================== */
+const IBM = 7;
+const ibOf = g => Math.max(0, Math.min(IBM, gradeScore(g) / gradeMax(g) * IBM));
+const f2 = n => (Math.round(n * 100) / 100).toFixed(2);
+function ibAvg(items) { let sw = 0, s = 0; items.forEach(g => { const w = gradeWeight(g); sw += w; s += ibOf(g) * w; }); return sw ? s / sw : 0; }
+const IB_WORDS = ['', 'Very poor', 'Poor', 'Mediocre', 'Satisfactory', 'Good', 'Very good', 'Excellent'];
+const ibRound = v => Math.max(1, Math.min(7, Math.round(v)));
+const ibWord = v => IB_WORDS[ibRound(v)];
+const ibTone = v => ['', '#b5453a', '#bf5f3b', '#c0803a', '#b98a2c', '#6f9a4f', '#3f8a63', '#2f7d5b'][ibRound(v)];
+const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+function pips(avg) { return '<div class="gr-pips">' + [0, 1, 2, 3, 4, 5, 6].map(i => `<span><i style="width:${Math.round(Math.max(0, Math.min(1, avg - i)) * 100)}%"></i></span>`).join('') + '</div>'; }
+const subjIcon = name => { const s = state.subjects.find(x => x.name.toLowerCase() === String(name).toLowerCase()); return s ? s.icon : '📘'; };
+
+function renderGradeHero() {
+    const box = document.getElementById('grHero'); if (!box) return;
+    if (!state.grades.length) {
+        box.innerHTML = `<div class="gr-empty"><div class="ic">💎</div><div><b>No grades yet</b><p>Post your first grade and your IB average will appear here.</p></div><button class="btn-primary" onclick="openGradeModal()">+ Post a grade</button></div>`;
+        return;
+    }
+    const avg = ibAvg(state.grades), tone = ibTone(avg), groups = groupGradesBySubject().map(g => ({ name: g.name, avg: ibAvg(g.items) }));
+    const sorted = groups.slice().sort((a, b) => b.avg - a.avg), C = 2 * Math.PI * 54;
+    const tiles = groups.length > 1
+        ? `<div class="gr-tile"><span class="k">Strongest subject</span><b>${esc(sorted[0].name)}</b><small>${f2(sorted[0].avg)} / 7</small></div>
+           <div class="gr-tile"><span class="k">Needs the most focus</span><b>${esc(sorted[sorted.length - 1].name)}</b><small>${f2(sorted[sorted.length - 1].avg)} / 7</small></div>`
+        : `<div class="gr-tile"><span class="k">Highest mark</span><b>${f2(Math.max(...state.grades.map(ibOf)))} / 7</b><small>your best so far</small></div>
+           <div class="gr-tile"><span class="k">Lowest mark</span><b>${f2(Math.min(...state.grades.map(ibOf)))} / 7</b><small>room to grow</small></div>`;
+    box.innerHTML = `<div class="gr-hero" style="--t:${tone}">
+        <div class="gr-ring"><svg viewBox="0 0 140 140" aria-hidden="true"><circle cx="70" cy="70" r="54" class="trk"/><circle cx="70" cy="70" r="54" class="val" stroke-dasharray="${(avg / IBM * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 70 70)"/></svg><div class="gr-ring-txt"><b>${f2(avg)}</b><span>out of 7</span></div></div>
+        <div class="gr-hero-info"><span class="gr-kicker">Overall IB average</span><h3>${ibWord(avg)}</h3><p>Across ${plural(state.grades.length, 'assessment')} in ${plural(groups.length, 'subject')}. That rounds to an IB <b>${ibRound(avg)}</b>.</p>${pips(avg)}</div>
+        <div class="gr-tiles"><div class="gr-tile"><span class="k">Assessments graded</span><b>${state.grades.length}</b><small>${plural(groups.length, 'subject')}</small></div>${tiles}</div>
+    </div>`;
+}
+
+function renderSubjectGrades() {
+    const box = document.getElementById('subjectGradesGrid'); if (!box) return;
+    if (!state.grades.length) { box.innerHTML = ''; return; }
+    box.innerHTML = groupGradesBySubject().map((grp, i) => {
+        const avg = ibAvg(grp.items), vals = grp.items.map(ibOf);
+        return `<div class="gr-subj" style="--c:${subjectColor(grp.name, i)};--t:${ibTone(avg)}">
+            <div class="top"><span class="nm"><span class="ic">${esc(subjIcon(grp.name))}</span>${esc(grp.name)}</span><span class="gr-chip">IB ${ibRound(avg)}</span></div>
+            <div class="avg"><b>${f2(avg)}</b><small>/ 7</small></div>
+            ${pips(avg)}
+            <div class="meta"><span>${plural(grp.items.length, 'exam')}</span><span>Low ${f2(Math.min(...vals))}</span><span>High ${f2(Math.max(...vals))}</span></div>
+            <div class="word">${ibWord(avg)}</div>
+        </div>`;
+    }).join('');
+}
+
+function groupedGradesHtml() {
+    return groupGradesBySubject().map((grp, i) => `
+        <div class="gr-group" style="--c:${subjectColor(grp.name, i)}">
+            <div class="gr-group-h"><span class="dot"></span>${esc(grp.name)}<em>${f2(ibAvg(grp.items))} / 7 average</em></div>
+            ${grp.items.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(g => { const v = ibOf(g); return `
+            <div class="gr-row" style="--t:${ibTone(v)}">
+                <div class="nm"><b>${esc(g.name)}</b><small>${gradeDateLabel(g.date)}${gradeWeight(g) !== 1 ? ' · counts ×' + fmtNum(gradeWeight(g)) : ''}</small></div>
+                <div class="raw">${fmtNum(gradeScore(g))} <i>out of</i> ${fmtNum(gradeMax(g))}</div>
+                <div class="ib"><b>${f2(v)}</b><small>/ 7</small></div>
+                <button class="x" onclick="deleteGrade(${g.id})" title="Remove grade" aria-label="Remove grade">✕</button>
+            </div>`; }).join('')}
+        </div>`).join('');
+}
+
+// ----- modal -----
+function gradePreview() {
+    const box = document.getElementById('gradePreview'); if (!box) return;
+    const s = parseFloat(document.getElementById('inputGradeVal').value), m = parseFloat(document.getElementById('inputGradeMax').value);
+    if (isNaN(s) || isNaN(m) || m <= 0 || s < 0) { box.innerHTML = '<span class="m-sub">Enter your mark and the total to see the IB grade.</span>'; box.style.removeProperty('--t'); return; }
+    const v = Math.min(IBM, s / m * IBM);
+    box.style.setProperty('--t', ibTone(v));
+    box.innerHTML = `<span>${fmtNum(s)} out of ${fmtNum(m)} →</span><b>${f2(v)}</b><span>/ 7</span><em>IB ${ibRound(v)} · ${ibWord(v)}</em>`;
+}
+function openGradeModal() {
+    document.getElementById('inputGradeDate').value = todayISO(); document.getElementById('inputGradeVal').value = ''; document.getElementById('inputGradeName').value = '';
+    document.getElementById('inputGradeWeight').value = 1;
+    gradePreview();
+    document.getElementById('modalGrade').classList.remove('hidden');
+}
+function saveNewGrade() {
+    const subj = document.getElementById('inputGradeSubj').value.trim(), name = document.getElementById('inputGradeName').value.trim();
+    const score = parseFloat(document.getElementById('inputGradeVal').value), max = parseFloat(document.getElementById('inputGradeMax').value);
+    const weight = parseFloat(document.getElementById('inputGradeWeight').value), date = document.getElementById('inputGradeDate').value;
+    if (!subj || !name) return alert('Please enter the subject and the assessment title.');
+    if (isNaN(score) || isNaN(max) || max <= 0 || score < 0) return alert('Enter your mark and what it was out of (for example 18 out of 21).');
+    if (score > max * 1.5) return alert('That mark looks too high for the total. Check the numbers.');
+    if (isNaN(weight) || weight <= 0) return alert('Weight must be greater than zero (1 is a normal assessment).');
+    if (!date) return alert('Please pick the date of the exam so trends can be drawn.');
+    state.grades.push({ id: Date.now(), subj, name, score, max, weight, date });
+    closeModal('modalGrade');
+    saveState();
+}
+
+// ----- goals -----
+const tgVal = n => (n >= 1 && n <= IBM) ? n : null;
+function tgSetTarget(name, v) { state.targets = state.targets || {}; const n = parseFloat(v); if (tgVal(n)) state.targets[name] = n; else delete state.targets[name]; saveState(); }
+function tgClear(name) { if (state.targets) delete state.targets[name]; saveState(); }
+function tgCalc(name) {
+    const items = (groupGradesBySubject().find(g => g.name === name) || { items: [] }).items, t = tgVal((state.targets || {})[name]);
+    const k = tgKey(name), el = document.getElementById(k + '_out'); if (!el) return;
+    const mx = parseFloat(document.getElementById(k + '_max').value), w = parseFloat(document.getElementById(k + '_w').value);
+    if (!t) { el.innerHTML = '<span class="muted">Set a goal from 1 to 7 to see what you need.</span>'; return; }
+    if (!(mx > 0) || !(w > 0)) { el.innerHTML = '<span class="muted">Enter what the next exam is out of and how much it counts.</span>'; return; }
+    if (!items.length) { el.innerHTML = `No grades yet. To reach a <b>${fmtNum(t)}</b>, aim for about <b>${fmtNum(t / IBM * mx)} out of ${fmtNum(mx)}</b> on your first exam.`; return; }
+    const W = items.reduce((a, g) => a + gradeWeight(g), 0), P = ibAvg(items), need = (t * (W + w) - P * W) / w, ceil = (P * W + IBM * w) / (W + w);
+    if (need <= 0) el.innerHTML = `<span class="ok">✓ You are already safe.</span> Even a 0 keeps you at about <b>${f2((P * W) / (W + w))}</b>, above your goal of ${fmtNum(t)}.`;
+    else if (need > IBM) el.innerHTML = `<span class="warn">Not reachable with this one exam.</span> Full marks lifts you to <b>${f2(ceil)}</b>. Plan for several exams, or lower the goal.`;
+    else el.innerHTML = `You need <b class="need">${f2(need)} / 7</b> on this exam, about <b>${fmtNum(need / IBM * mx)} out of ${fmtNum(mx)}</b>, to reach a ${fmtNum(t)}.${need >= 6.3 ? ' <span class="muted">That is a stretch, so start revising early.</span>' : ''}`;
+}
+function renderTargets() {
+    const body = document.getElementById('targetsBody'); if (!body) return;
+    const names = tgSubjectNames(); state.targets = state.targets || {};
+    if (!names.length) { body.innerHTML = '<div class="gr-blank">Add subjects or post a grade, then set a goal for each one here.</div>'; return; }
+    body.innerHTML = '<div class="gr-goals">' + names.map((name, i) => {
+        const items = (groupGradesBySubject().find(g => g.name === name) || { items: [] }).items, P = items.length ? ibAvg(items) : null, t = tgVal(state.targets[name]), k = tgKey(name), col = subjectColor(name, i);
+        const last = items[items.length - 1], defMax = last ? gradeMax(last) : 21, defW = items.length ? Math.round(items.reduce((a, g) => a + gradeWeight(g), 0) / items.length * 100) / 100 : 1;
+        const gap = P !== null && t ? P - t : null, q = name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        return `<div class="gr-goal" style="--c:${col}">
+            <div class="gh"><b><span class="ic">${esc(subjIcon(name))}</span>${esc(name)}</b><span class="now">${P !== null ? 'Now <b>' + f2(P) + '</b> / 7' : 'No grades yet'}</span></div>
+            <div class="track"><div class="fill" style="width:${P !== null ? P / IBM * 100 : 0}%"></div>${t ? `<div class="mark" title="Goal ${fmtNum(t)}" style="left:${t / IBM * 100}%"></div>` : ''}</div>
+            <div class="row"><label>Goal</label><input type="number" min="1" max="7" step="0.1" value="${t || ''}" placeholder="e.g. 6" onchange="tgSetTarget('${q}', this.value)" class="fld sm">
+              ${t && gap !== null ? `<span class="${gap >= 0 ? 'ok' : 'warn'}">${gap >= 0 ? '✓ ' + f2(gap) + ' above goal' : f2(-gap) + ' to go'}</span><button class="lnk" onclick="tgClear('${q}')">clear</button>` : ''}</div>
+            <div class="row"><span>Next exam is out of</span><input id="${k}_max" type="number" min="1" value="${defMax}" oninput="tgCalc('${q}')" class="fld sm"><span>and counts ×</span><input id="${k}_w" type="number" min="0.1" step="0.1" value="${defW}" oninput="tgCalc('${q}')" class="fld sm"></div>
+            <div id="${k}_out" class="out"></div></div>`;
+    }).join('') + '</div>';
+    names.forEach(tgCalc);
+}
+
+// ----- trends -----
+function renderTrends() {
+    const body = document.getElementById('trendsBody'); if (!body) return;
+    const groups = groupGradesBySubject().map((g, i) => ({ name: g.name, color: subjectColor(g.name, i), items: g.items.filter(x => x.date).sort((a, b) => a.date.localeCompare(b.date)) }));
+    const dated = groups.reduce((n, g) => n + g.items.length, 0), undated = state.grades.length - dated;
+    if (!dated) { body.innerHTML = `<div class="gr-blank">No dated grades yet. Post a grade with the exam date and your trends will appear here.${undated ? ' (Older grades without a date are not shown.)' : ''}</div>`; trendPts = []; return; }
+    if (trendFilter !== 'all' && !groups.some(g => g.name === trendFilter && g.items.length)) trendFilter = 'all';
+    const shown = groups.filter(g => g.items.length && (trendFilter === 'all' || g.name === trendFilter));
+    const q = s => esc(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const chip = (v, label, color) => `<button onclick="setTrendFilter('${q(v)}')" class="gr-fchip ${trendFilter === v ? 'on' : ''}" style="--c:${color}">${esc(label)}</button>`;
+    const modeBtn = (m, label) => `<button onclick="setTrendMode('${m}')" class="gr-fchip ${trendMode === m ? 'on' : ''}" style="--c:var(--accent)">${label}</button>`;
+    const summary = shown.map(g => {
+        let txt = 'Add another exam to see a trend.', arrow = '•', cls = 'flat';
+        if (g.items.length >= 2) {
+            const xs = g.items.map(x => new Date(x.date + 'T00:00:00').getTime() / 86400000), ys = g.items.map(ibOf), n = xs.length, mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n;
+            let num = 0, den = 0; xs.forEach((x, i) => { num += (x - mx) * (ys[i] - my); den += (x - mx) * (x - mx); });
+            const slope = den ? num / den * 30 : 0, diff = ys[n - 1] - ys[0], sg = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2);
+            if (Math.abs(slope) < 0.1) { arrow = '▬'; txt = `Holding steady (${sg(diff)} since your first exam)`; }
+            else if (slope > 0) { arrow = '▲'; cls = 'up'; txt = `Improving: about ${sg(slope)} per month (${sg(diff)} since your first exam)`; }
+            else { arrow = '▼'; cls = 'down'; txt = `Slipping: about ${sg(slope)} per month (${sg(diff)} since your first exam)`; }
+        }
+        return `<div class="gr-trend-row"><div class="l"><span class="dot" style="background:${g.color}"></span><b>${esc(g.name)}</b></div><div class="r"><span class="${cls}">${arrow} ${txt}</span><small>Average ${f2(ibAvg(g.items))} / 7 · ${plural(g.items.length, 'exam')}</small></div></div>`;
+    }).join('');
+    body.innerHTML = `<div class="gr-filters"><div>${chip('all', 'All subjects', 'var(--accent)')}${groups.filter(g => g.items.length).map(g => chip(g.name, g.name, g.color)).join('')}</div><div>${modeBtn('scores', 'Exam scores')}${modeBtn('avg', 'Running average')}</div></div>
+        <div class="relative"><canvas id="trendCanvas" style="width:100%;height:300px;display:block"></canvas><div id="trendTip" class="hidden"></div></div>
+        <div class="gr-note">Each dot is one exam on the 0–7 scale. A bigger dot means it counts for more.${undated ? ` ${plural(undated, 'older grade')} without a date ${undated === 1 ? 'is' : 'are'} not shown.` : ''}</div>
+        <div class="gr-trend-list">${summary}</div>`;
+    drawTrendChart(shown);
+}
+function drawTrendChart(shown) {
+    const cv = document.getElementById('trendCanvas'); if (!cv) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2), W = cv.clientWidth || 600, H = 300; cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
+    const day = d => new Date(d + 'T00:00:00').getTime() / 86400000;
+    const all = shown.flatMap(s => s.items); let x0 = Math.min(...all.map(i => day(i.date))), x1 = Math.max(...all.map(i => day(i.date)));
+    if (x1 - x0 < 1) { x0 -= 3; x1 += 3; } else { const padD = (x1 - x0) * 0.06; x0 -= padD; x1 += padD; }
+    const L = 34, R = 16, T = 14, B = 30, X = d => L + (W - L - R) * (d - x0) / (x1 - x0), Y = v => T + (H - T - B) * (1 - Math.min(IBM, Math.max(0, v)) / IBM);
+    const light = document.documentElement.classList.contains('day-mode'), tx = light ? '#5b695f' : '#93a0b7', gridc = light ? 'rgba(31,77,58,.12)' : 'rgba(148,163,184,.12)', ring = light ? '#f9f3e7' : '#121a2c';
+    g.font = '11px "Plus Jakarta Sans", sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'right';
+    for (let v = 0; v <= IBM; v++) { g.strokeStyle = gridc; g.lineWidth = 1; g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(W - R, Y(v)); g.stroke(); g.fillStyle = tx; g.fillText(String(v), L - 8, Y(v)); }
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    for (let i = 0; i <= 5; i++) { const d = x0 + (x1 - x0) * i / 5; g.fillStyle = tx; g.fillText(new Date(d * 86400000 + 43200000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), X(d), H - B + 9); }
+    trendPts = [];
+    const maxW = Math.max(...all.map(gradeWeight)), minW = Math.min(...all.map(gradeWeight));
+    shown.forEach(s => {
+        let pts;
+        if (trendMode === 'avg') { const acc = []; pts = s.items.map(it => { acc.push(it); return { it, x: X(day(it.date)), p: ibAvg(acc) }; }); }
+        else pts = s.items.map(it => ({ it, x: X(day(it.date)), p: ibOf(it) }));
+        g.strokeStyle = s.color; g.lineWidth = 2.5; g.lineJoin = 'round'; g.lineCap = 'round'; g.beginPath(); pts.forEach((q, i) => { const y = Y(q.p); i ? g.lineTo(q.x, y) : g.moveTo(q.x, y); }); g.stroke();
+        pts.forEach(q => { const w = gradeWeight(q.it), r = maxW === minW ? 5.5 : 4 + 5 * (w - minW) / (maxW - minW), y = Y(q.p); g.fillStyle = s.color; g.beginPath(); g.arc(q.x, y, r, 0, 7); g.fill(); g.strokeStyle = ring; g.lineWidth = 2; g.stroke(); trendPts.push({ x: q.x, y, r, s, it: q.it, p: q.p }); });
+    });
+    cv.onmousemove = ev => {
+        const rc = cv.getBoundingClientRect(), mx = ev.clientX - rc.left, my = ev.clientY - rc.top; let best = null, bd = 1e9;
+        trendPts.forEach(q => { const d = Math.hypot(q.x - mx, q.y - my); if (d < bd) { bd = d; best = q; } });
+        const tip = document.getElementById('trendTip'); if (!tip) return;
+        if (best && bd < best.r + 10) {
+            const it = best.it;
+            tip.innerHTML = `<b style="color:${best.s.color}">${esc(best.s.name)}</b><br>${esc(it.name)}<br>${fmtNum(gradeScore(it))} out of ${fmtNum(gradeMax(it))} → <b>${f2(ibOf(it))} / 7</b><br><span class="muted">${gradeDateLabel(it.date)}${gradeWeight(it) !== 1 ? ' · counts ×' + fmtNum(gradeWeight(it)) : ''}</span>${trendMode === 'avg' ? `<br>Running average: ${f2(best.p)} / 7` : ''}`;
+            tip.classList.remove('hidden'); tip.style.left = Math.min(mx + 14, rc.width - 235) + 'px'; tip.style.top = Math.max(0, my - 20) + 'px';
+        } else tip.classList.add('hidden');
+    };
+    cv.onmouseleave = () => { const tip = document.getElementById('trendTip'); if (tip) tip.classList.add('hidden'); };
+}
+
+function renderGrades() {
+    renderGradeHero(); renderSubjectGrades(); renderTrends(); renderTargets();
+    const gList = document.getElementById('gradesListContainer'); if (!gList) return;
+    gList.innerHTML = state.grades.length ? groupedGradesHtml() : '<div class="gr-blank">No grades recorded yet. Click “Post a grade” to start.</div>';
+}
+</script>
+
+
+<script>
+/* =====================================================================
+   TITLE PAGE: local account, live metrics, open the site
+   ===================================================================== */
+const ACC_KEY = 'hub_account_v1';
+const hubAcc = () => { try { return JSON.parse(localStorage.getItem(ACC_KEY) || 'null'); } catch (e) { return null; } };
+const hubSession = () => { try { return localStorage.getItem('hub_session') === '1'; } catch (e) { return false; } };
+const hubB64 = buf => btoa(String.fromCharCode(...new Uint8Array(buf)));
+const hubUnb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function hubHash(pw, saltB64) {
+    try {
+        if (window.crypto && crypto.subtle) {
+            const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']);
+            const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: hubUnb64(saltB64), iterations: 150000, hash: 'SHA-256' }, key, 256);
+            return 'p2:' + hubB64(bits);
+        }
+    } catch (e) {}
+    let h = 5381; const s = saltB64 + pw; for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return 'w:' + h; // only if the browser has no crypto
+}
+
+function renderAuth() {
+    const box = document.getElementById('introAuth'); if (!box) return;
+    const acc = hubAcc(), openBtn = '<button type="button" id="inOpenBtn" class="in-open" onclick="introSubmit()">Open web page <span>→</span></button>';
+    if (!acc) {
+        box.innerHTML = `<div class="in-auth">
+            <h2 id="inAuthH">Create your account</h2>
+            <p class="in-lead">Pick a username and a password. They are saved on this device only, so nobody else can open your hub on this browser without them.</p>
+            <div class="in-field"><label for="inUser">Username</label><input id="inUser" type="text" autocomplete="username" maxlength="24" placeholder="e.g. alex"></div>
+            <div class="in-field"><label for="inPass">Password</label><input id="inPass" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
+            <div class="in-field"><label for="inPass2">Confirm password</label><input id="inPass2" type="password" autocomplete="new-password" placeholder="Type it again"></div>
+            <div class="in-err" id="inErr" role="alert"></div>
+            ${openBtn}
+        </div>`;
+    } else if (hubSession()) {
+        box.innerHTML = `<div class="in-auth">
+            <h2 id="inAuthH">Welcome back</h2>
+            <div class="in-welcome"><span class="in-avatar">${esc(acc.user.charAt(0).toUpperCase())}</span><div><b>${esc(acc.user)}</b><small>Signed in on this device</small></div></div>
+            <div class="in-err" id="inErr" role="alert"></div>
+            ${openBtn}
+            <div class="in-links"><button type="button" class="in-link" onclick="introLogout()">Not you? Log out</button></div>
+        </div>`;
+    } else {
+        box.innerHTML = `<div class="in-auth">
+            <h2 id="inAuthH">Welcome back</h2>
+            <div class="in-field"><label for="inUser">Username</label><input id="inUser" type="text" value="${esc(acc.user)}" readonly></div>
+            <div class="in-field"><label for="inPass">Password</label><input id="inPass" type="password" autocomplete="current-password" placeholder="Enter your password"></div>
+            <div class="in-err" id="inErr" role="alert"></div>
+            ${openBtn}
+            <div class="in-links"><button type="button" class="in-link" onclick="introForgot()">Forgot your password?</button></div>
+        </div>`;
+    }
+    box.querySelectorAll('input').forEach(i => i.addEventListener('keydown', e => { if (e.key === 'Enter') introSubmit(); }));
+    const first = box.querySelector('input:not([readonly])'); if (first && window.innerWidth > 900) setTimeout(() => first.focus({ preventScroll: true }), 120);
+}
+function introError(msg) {
+    const e = document.getElementById('inErr'); if (e) e.textContent = msg;
+    const b = document.getElementById('inOpenBtn'); if (b) { b.classList.remove('in-shake'); void b.offsetWidth; b.classList.add('in-shake'); }
+}
+async function introSubmit() {
+    const acc = hubAcc(), btn = document.getElementById('inOpenBtn'); introError('');
+    if (!acc) {
+        const u = document.getElementById('inUser').value.trim(), p = document.getElementById('inPass').value, p2 = document.getElementById('inPass2').value;
+        if (u.length < 2) return introError('Pick a username with at least 2 characters.');
+        if (p.length < 6) return introError('Your password needs at least 6 characters.');
+        if (p !== p2) return introError('The two passwords do not match.');
+        btn.disabled = true;
+        const salt = hubB64(crypto.getRandomValues(new Uint8Array(16))), hash = await hubHash(p, salt);
+        try { localStorage.setItem(ACC_KEY, JSON.stringify({ user: u, salt, hash, created: Date.now() })); localStorage.setItem('hub_session', '1'); } catch (e) { btn.disabled = false; return introError('This browser would not save your account. Allow site storage and try again.'); }
+        btn.disabled = false; return openSite();
+    }
+    if (hubSession()) return openSite();
+    const p = document.getElementById('inPass').value;
+    if (!p) return introError('Enter your password.');
+    btn.disabled = true;
+    const ok = (await hubHash(p, acc.salt)) === acc.hash;
+    btn.disabled = false;
+    if (!ok) return introError('That password is not right.');
+    try { localStorage.setItem('hub_session', '1'); } catch (e) {}
+    openSite();
+}
+function introLogout() { try { localStorage.removeItem('hub_session'); } catch (e) {} renderAuth(); }
+function introForgot() {
+    if (!confirm('Reset your login?\n\nYour assessments, grades, notes and flashcards are kept. You will just create a new username and password.')) return;
+    try { localStorage.removeItem(ACC_KEY); localStorage.removeItem('hub_session'); } catch (e) {}
+    renderAuth();
+}
+function openSite() {
+    const el = document.getElementById('introScreen'); if (!el) return;
+    el.classList.add('leaving'); document.documentElement.classList.remove('intro-open');
+    setTimeout(() => { el.style.display = 'none'; el.classList.remove('leaving'); curIdx = -1; queueSpy(); }, 600);
+    if (!location.hash) window.scrollTo(0, 0);
+}
+function showIntro() {
+    const el = document.getElementById('introScreen'); if (!el) return;
+    toggleBarMenu && toggleBarMenu(false);
+    renderAuth(); renderMetrics(); el.style.display = ''; el.scrollTop = 0; el.classList.remove('leaving');
+    document.documentElement.classList.add('intro-open');
+}
+
+/* ---------- live metrics ---------- */
+function renderClock() {
+    const c = document.getElementById('inClock'), d = document.getElementById('inDate'); if (!c) return;
+    const n = new Date(); c.textContent = n.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    d.textContent = n.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+}
+function renderMetrics() {
+    const box = document.getElementById('inTiles'); if (!box) return;
+    let due3 = 0, nextTitle = 'Nothing due', cards = 0, avg = '—', graded = 0;
+    try {
+        const open = state.assessments.filter(a => !a.done && a.due).sort((a, b) => a.due.localeCompare(b.due));
+        due3 = open.filter(a => getPriorityMeta(a.due).days <= 3).length;
+        if (open[0]) nextTitle = open[0].title + ' · ' + getPriorityMeta(open[0].due).when;
+        cards = state.cards.filter(c => cdIsDue(c)).length;
+        graded = state.grades.length; if (graded) avg = f2(ibAvg(state.grades));
+    } catch (e) {}
+    box.innerHTML = `
+        <div class="in-tile"><span class="k">Urgent</span><b>${due3}</b><small>${due3 === 1 ? 'assessment' : 'assessments'} within 3 days</small></div>
+        <div class="in-tile"><span class="k">IB average</span><b>${avg}${avg === '—' ? '' : ' <span style="font-size:.9rem;color:#6a766d">/ 7</span>'}</b><small>${graded ? graded + ' graded' : 'no grades yet'}</small></div>
+        <div class="in-tile"><span class="k">Cards due</span><b>${cards}</b><small>flashcards today</small></div>
+        <div class="in-tile"><span class="k">Next up</span><b style="font-size:1.05rem;padding-top:.4rem">${esc(nextTitle.split(' · ')[0])}</b><small>${esc(nextTitle.split(' · ')[1] || 'enjoy the quiet')}</small></div>`;
+}
+function initIntro() {
+    document.documentElement.classList.add('intro-open');
+    renderAuth(); renderMetrics(); renderClock();
+    setInterval(renderClock, 1000);
+    setInterval(() => { const el = document.getElementById('introScreen'); if (el && el.style.display !== 'none') renderMetrics(); }, 5000);
+}
+window.addEventListener('DOMContentLoaded', () => setTimeout(initIntro, 0));
+</script>
+
+
+<script>
+/* =====================================================================
+   CALM RENDERS: Today, Schedule, Calendar, Timer presets, Quiz progress
+   ===================================================================== */
+function renderDaily() {
+    const list = document.getElementById('dailyChecklist'); if (!list) return;
+    const d = dailyLoad(), total = state.dailyItems.length, done = state.dailyItems.filter(it => d.done[it.id]).length;
+    document.getElementById('dailyDate').innerText = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) + ' · your list resets every morning';
+    const prog = document.getElementById('dailyProgress');
+    if (prog) {
+        const C = 2 * Math.PI * 30;
+        prog.innerHTML = total
+            ? `<div class="td-ring"><svg viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" class="trk"/><circle cx="36" cy="36" r="30" class="val" stroke-dasharray="${(done / total * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 36 36)"/></svg><b>${done}/${total}</b></div><div><h3 class="sec-h3">${done === total ? 'All done for today' : 'Daily practice'}</h3><p class="gr-note">${done === total ? 'Nice work. See you tomorrow.' : (total - done) + ' left to go today'}</p></div>`
+            : `<div><h3 class="sec-h3">Daily practice</h3><p class="gr-note">Habits you want to do every single day.</p></div>`;
+    }
+    list.innerHTML = total ? state.dailyItems.map(it => {
+        const on = !!d.done[it.id], sub = it.subjectId ? getSubject(it.subjectId) : null, icon = sub ? sub.icon : '⭐';
+        const hint = [sub ? sub.name : '', it.hint].filter(Boolean).join(' · '), link = it.link || (sub && sub.link) || '';
+        return `<div class="td-item ${on ? 'is-on' : ''}">
+            <button class="td-row" onclick="dailyToggle('${it.id}')"><span class="td-check">✓</span><span class="td-ic">${esc(icon)}</span><span class="td-txt"><b>${esc(it.title)}</b>${hint ? `<small>${esc(hint)}</small>` : ''}</span></button>
+            ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener" class="td-act" title="Open link">↗</a>` : ''}
+            <button onclick="removeDailyItem('${it.id}')" class="td-act" title="Remove" aria-label="Remove">✕</button>
+        </div>`;
+    }).join('') : `<div class="td-empty"><div style="font-size:2rem">📆</div><b>Nothing on your daily list yet</b>Add what you want to practise every day (flashcards, reading, vocabulary). It resets each morning.</div>`;
+    const items = [
+        ...state.assessments.filter(a => !a.done && a.due).map(a => ({ kind: 'a', id: a.id, title: a.title, sub: a.subject, due: a.due })),
+        ...state.tasks.filter(t => !t.done && t.due && t.type === 'Urgent School').map(t => ({ kind: 't', id: t.id, title: t.title, sub: 'Task', due: t.due }))
+    ].map(x => ({ ...x, p: getPriorityMeta(x.due) })).filter(x => x.p.days <= 3).sort((a, b) => a.p.days - b.p.days);
+    document.getElementById('dailyPriorityList').innerHTML = items.length ? items.map(x => {
+        const s = state.subjects.find(z => z.name.toLowerCase() === String(x.sub).toLowerCase()), c = s ? softColor(s.color) : 'var(--ac)';
+        return `<div class="td-alert"><div class="min-w-0"><div class="tags"><span class="td-pill" style="--c:${esc(c)}">${esc(x.sub)}</span><span class="td-pill" style="--c:var(--hi)">${esc(x.p.when)}</span></div><b>${esc(x.title)}</b><small>Due ${esc(gradeDateLabel(x.due))}</small></div>
+            <button onclick="${x.kind === 'a' ? 'dailyMarkAssessment' : 'dailyMarkTask'}(${x.id})" class="btn-ghost" style="white-space:nowrap">${x.kind === 'a' ? '✓ Done early' : '✓ Done'}</button></div>`;
+    }).join('') : `<div class="td-empty"><div style="font-size:2rem">🎉</div><b>You are clear</b>Nothing is due in the next 3 days.</div>`;
+}
+
+function renderSchedule() {
+    const grid = document.getElementById('schedGrid'); if (!grid) return;
+    const data = schedData()[schedWeek], todayKey = (SCHED_DAYS[(new Date().getDay() + 6) % 7] || [''])[0];
+    const a = document.getElementById('schedBtnA'), b = document.getElementById('schedBtnB');
+    if (a) a.className = 'seg-btn' + (schedWeek === 'A' ? ' on' : ''); if (b) b.className = 'seg-btn' + (schedWeek === 'B' ? ' on' : '');
+    document.getElementById('schedCopyBtn').innerText = `⧉ Copy to Week ${schedWeek === 'A' ? 'B' : 'A'}`;
+    grid.innerHTML = SCHED_DAYS.map(([k, name]) => {
+        const items = data[k].slice().sort((x, y) => (x.start || '99:99').localeCompare(y.start || '99:99'));
+        const rows = items.length ? items.map(it => {
+            const sub = state.subjects.find(s => s.name.toLowerCase() === it.title.toLowerCase()), c = sub ? softColor(sub.color) : NEW_PAL[0];
+            const time = it.start ? schedFmtTime(it.start) + (it.end ? ' – ' + schedFmtTime(it.end) : '') : 'Any time';
+            return `<button class="sc-item" style="--c:${esc(c)}" onclick="openSchedModal('${k}','${it.id}')"><span class="t">${esc(time)}</span><b>${sub ? esc(sub.icon) + ' ' : ''}${esc(it.title)}</b>${it.room ? `<small>Room ${esc(it.room)}</small>` : ''}</button>`;
+        }).join('') : '<div class="sc-empty">Nothing scheduled</div>';
+        return `<div class="sc-day ${k === todayKey ? 'is-today' : ''}"><div class="sc-h"><b>${name}</b>${k === todayKey ? '<em>Today</em>' : ''}<button class="sc-add" onclick="openSchedModal('${k}')" aria-label="Add to ${name}">+ Add</button></div>${rows}</div>`;
+    }).join('');
+}
+
+function renderCalendarGrid() {
+    const names = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    document.getElementById('calendarMonthTitle').innerText = `${names[calMonth]} ${calYear}`;
+    const first = new Date(calYear, calMonth, 1).getDay(), total = new Date(calYear, calMonth + 1, 0).getDate(), today = todayISO();
+    let html = '';
+    for (let i = 0; i < first; i++) html += '<div class="cal-cell is-blank"></div>';
+    for (let d = 1; d <= total; d++) {
+        const iso = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const ev = [
+            ...state.assessments.filter(a => a.due === iso).map(a => { const p = getPriorityMeta(a.due); return `<div class="cal-chip ${a.done || p.days < 0 ? 'past' : 'lvl-' + p.level}" title="${esc(a.subject)}: ${esc(a.title)}">${esc(a.title)}</div>`; }),
+            ...state.tasks.filter(t => t.due === iso).map(t => `<div class="cal-chip task" title="${esc(t.title)}">${esc(t.title)}</div>`)
+        ];
+        html += `<div class="cal-cell ${iso === today ? 'is-today' : ''}"><span class="cal-d">${d}</span><div class="cal-ev">${ev.slice(0, 3).join('')}${ev.length > 3 ? `<span class="cal-more">+${ev.length - 3} more</span>` : ''}</div></div>`;
+    }
+    document.getElementById('calendarDaysGrid').innerHTML = html;
+}
+function generateSmartCalendarSchedule() {
+    const box = document.getElementById('aiCalendarScheduleBox'); box.classList.remove('hidden');
+    const urgent = state.assessments.filter(a => !a.done).sort((a, b) => String(a.due).localeCompare(String(b.due))).slice(0, 3);
+    box.innerHTML = `
+        <div class="sec-h3" style="font-size:1.05rem">Your priority-ranked study plan</div>
+        <p class="text-sm text-slate-300">• <strong>4:00 – 5:00 PM · school block:</strong> ${urgent.length ? urgent.map(u => esc(u.subject) + ': ' + esc(u.title) + ' (due ' + esc(gradeDateLabel(u.due)) + ')').join(' · ') : (state.subjects.length ? 'Review your NotebookLM notebooks: ' + state.subjects.map(s => esc(s.name)).join(', ') : 'Add subjects on the Assessments section, then come back.')}</p>
+        <p class="text-sm text-slate-300">• <strong>5:00 – 5:25 PM · focus session:</strong> one 25-minute round on the Focus timer.</p>
+        <p class="text-sm text-slate-300">• <strong>6:30 – 7:00 PM · everything else:</strong> lighter tasks once the urgent work is done.</p>`;
+}
+
+// timer: highlight the chosen length
+const _setTimerMinutesOld = setTimerMinutes;
+setTimerMinutes = function (m) { _setTimerMinutesOld(m); document.querySelectorAll('.tm-side .seg-btn').forEach(b => b.classList.toggle('on', parseInt(b.textContent, 10) === m)); };
+window.addEventListener('DOMContentLoaded', () => setTimeout(() => document.querySelectorAll('.tm-side .seg-btn').forEach(b => b.classList.toggle('on', parseInt(b.textContent, 10) === Math.round(timerTotalSeconds / 60))), 0));
+
+// quiz: progress bar
+const _renderQuizCardOld = renderCurrentQuizCard;
+renderCurrentQuizCard = function () { _renderQuizCardOld(); const el = document.getElementById('quizProgress'); if (el && activeQuizList.length) el.style.width = Math.min(100, quizIdx / activeQuizList.length * 100) + '%'; };
+</script>
 
     <!-- ON-SCREEN REMINDER POP-UP -->
     <div id="remindPopup" class="fixed inset-0 z-[60] hidden bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
