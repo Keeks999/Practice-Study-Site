@@ -1131,6 +1131,23 @@ html body #introScreen input::placeholder { color: #98a198; }
 .in-foot { margin-top: auto; text-align: center; font-size: .78rem; color: #6a766d; padding-top: 8px; }
 @media (max-width: 640px) { .in-open { height: 64px; font-size: 1.25rem; } .in-tiles--3 { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { .in-hero, .in-card { animation: none; } #introScreen { transition: none; } }
+.in-by { font-size: .95rem; color: #55635a; font-weight: 600; margin-top: .2rem; }
+.in-by a, .in-foot a { color: #1f4d3a; font-weight: 800; text-decoration: none; border-bottom: 1.5px solid rgba(31,77,58,.35); }
+.in-by a:hover, .in-foot a:hover { border-bottom-color: #1f4d3a; }
+.in-by { font-size: .92rem !important; letter-spacing: .02em; color: #6a766d !important; font-weight: 600; margin-top: -.1rem; }
+.in-seg--gs { grid-template-columns: 1fr 1fr; }
+.gs-opt { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: .7rem .95rem; border-radius: 14px; font-family: 'Plus Jakarta Sans', sans-serif; color: #1f4d3a; background: rgba(31,77,58,.05); border: 1.5px solid rgba(31,77,58,.16); text-align: left; cursor: pointer; transition: all .15s ease; }
+.gs-opt b { font-size: .88rem; } .gs-opt small { font-size: .72rem; color: #6a766d; font-weight: 600; }
+.gs-opt:hover { border-color: #2f7d5b; background: rgba(31,77,58,.1); }
+.gs-opt.on { border-color: #1f4d3a; background: rgba(31,77,58,.16); box-shadow: inset 0 0 0 1px #1f4d3a; }
+.gs-opt[data-gs="other"] { grid-column: span 2; }
+.in-other { display: flex; align-items: center; gap: .8rem; font-size: .85rem; font-weight: 700; color: #1f4d3a; } .in-other input { max-width: 110px; }
+.tb-by { flex-shrink: 0; font-size: .72rem; font-weight: 700; letter-spacing: .02em; color: rgba(255,255,255,.72); text-decoration: none; white-space: nowrap; display: none; }
+.tb-by:hover { color: #fff; text-decoration: underline; }
+@media (min-width: 1380px) { .tb-by { display: inline; } }
+html.dev-laptop .tb-by, html.dev-small .tb-by { display: none; }
+html.day-mode .tb-by { color: rgba(246,241,231,.8); }
+body select.fld.sm { width: auto; min-width: 78px; padding: .35rem .6rem; font-size: .85rem; border-radius: 10px; }
     
 /* =====================================================================
    CALM SKIN for Today, Schedule, Calendar, Flashcards, Timer, Notes, Quiz
@@ -1314,6 +1331,7 @@ html.day-mode { --ac: #1f4d3a; --ac-btn: linear-gradient(135deg, #2f7050, #1f4d3
             <button type="button" class="jump-btn" data-target="game" onclick="switchTab('game')" title="Sovereign Roll"><span class="ic">🎲</span><span class="lbl">Game</span></button>
             <button type="button" class="jump-btn round" data-target="about" onclick="switchTab('about')" title="About" aria-label="About">?</button>
         </nav>
+        <a class="tb-by" href="https://github.com/keeks999" target="_blank" rel="noopener" title="Made by keeks999">by @keeks999</a>
         <button type="button" id="modeToggleBtn" class="tb-toggle tb-toggle--mini" onclick="toggleDayNightMode()" title="Switch between dark and light mode" aria-label="Switch between dark and light mode">
             <span class="opt opt-dark">🌙<b> Dark</b></span><span class="opt opt-light">☀<b> Light</b></span>
         </button>
@@ -1336,7 +1354,8 @@ html.day-mode { --ac: #1f4d3a; --ac-btn: linear-gradient(135deg, #2f7050, #1f4d3
                 <div class="in-mark">☕</div>
                 <div class="in-eyebrow">STUDY EDITION</div>
                 <h1>Daily Practice Hub</h1>
-                <p class="in-sub">Your assessments, IB grades, flashcards and focus time, all in one calm place.</p>
+                <p class="in-sub">Your assessments, grades, flashcards and focus time, all in one calm place.</p>
+                <p class="in-by">Made by <a href="https://github.com/keeks999" target="_blank" rel="noopener">@keeks999</a></p>
             </header>
 
             <div class="in-grid">
@@ -1358,6 +1377,16 @@ html.day-mode { --ac: #1f4d3a; --ac-btn: linear-gradient(135deg, #2f7050, #1f4d3
                         <button type="button" class="in-btn" onclick="downloadStandaloneHtml()"><span>💾</span>Save index.html</button>
                         <input type="file" id="importFileInput" accept="application/json,.json" class="hidden" onchange="importBackup(event)">
                     </div>
+                    <h3 class="in-h3">How are you graded?</h3>
+                    <div class="in-seg in-seg--gs">
+                        <button type="button" class="gs-opt" data-gs="ib" onclick="setGrading('ib')"><b>IB System</b><small>0 to 7</small></button>
+                        <button type="button" class="gs-opt" data-gs="letter" onclick="setGrading('letter')"><b>Letter Grades</b><small>A, B, C…</small></button>
+                        <button type="button" class="gs-opt" data-gs="percent" onclick="setGrading('percent')"><b>Percentages</b><small>0 to 100%</small></button>
+                        <button type="button" class="gs-opt" data-gs="ap" onclick="setGrading('ap')"><b>AP</b><small>1 to 5</small></button>
+                        <button type="button" class="gs-opt" data-gs="other" onclick="setGrading('other')"><b>Other</b><small>my own scale</small></button>
+                    </div>
+                    <div id="inOtherRow" class="in-other hidden"><label for="inOtherMax">My scale goes up to</label><input id="inOtherMax" type="number" min="1" max="1000" step="any" value="10" oninput="setOtherMax(this.value)"></div>
+                    <p class="in-hint" id="inGsHint"></p>
                     <h3 class="in-h3">Screen size</h3>
                     <div class="in-seg">
                         <button type="button" class="dev-opt" data-dev="desktop" onclick="setDevice('desktop')"><span>🖥️</span>Big monitor</button>
@@ -1371,7 +1400,7 @@ html.day-mode { --ac: #1f4d3a; --ac-btn: linear-gradient(135deg, #2f7050, #1f4d3
                     <p class="in-hint">Everything you add is saved only in this browser on this computer. Download a backup now and then.</p>
                 </section>
             </div>
-            <footer class="in-foot">© 2026 Academic Tracker — Daily Practice Hub</footer>
+            <footer class="in-foot">© 2026 Academic Tracker — Daily Practice Hub · Made by <a href="https://github.com/keeks999" target="_blank" rel="noopener">@keeks999</a></footer>
         </div>
     </main>
 
@@ -1544,7 +1573,7 @@ html.day-mode { --ac: #1f4d3a; --ac-btn: linear-gradient(135deg, #2f7050, #1f4d3
             <div class="rv-head">
                 <div>
                     <h2 class="sec-title">Grades</h2>
-                    <p class="sec-sub">Everything is on the IB scale, 0 to 7. Type your mark and what it was out of (28, 21, 100, 7…) and it converts for you.</p>
+                    <p class="sec-sub" id="grSub"></p>
                 </div>
                 <button onclick="openGradeModal()" class="btn-primary">+ Post a grade</button>
             </div>
@@ -1556,7 +1585,7 @@ html.day-mode { --ac: #1f4d3a; --ac-btn: linear-gradient(135deg, #2f7050, #1f4d3
                     <div id="trendsBody"></div>
                 </div>
                 <div id="targetsCard" class="gr-card">
-                    <div class="gr-card-head"><h3 class="sec-h3">Goals &amp; what you need next</h3><span class="gr-note">set a 0–7 goal per subject</span></div>
+                    <div class="gr-card-head"><h3 class="sec-h3">Goals &amp; what you need next</h3><span class="gr-note" id="grGoalNote">set a goal per subject</span></div>
                     <div id="targetsBody"></div>
                 </div>
             </div>
@@ -1771,7 +1800,7 @@ html.day-mode { --ac: #1f4d3a; --ac-btn: linear-gradient(135deg, #2f7050, #1f4d3
                 <div class="qz-trophy">🏆</div>
                 <h3 class="sec-title">Quiz complete</h3>
                 <p id="quizScoreSummary" class="qz-score"></p>
-                <div class="qz-scale"><span class="k">Estimated IB level</span><b id="quizScaleEquivalent">7.0 / 7.0</b></div>
+                <div class="qz-scale"><span class="k">Estimated mastery</span><b id="quizScaleEquivalent">7.0 / 7.0</b></div>
                 <div id="quizMissedList" class="text-left max-w-xl mx-auto w-full"></div>
                 <div><button onclick="startFreshQuiz(currentQuizDeck)" class="btn-primary">🔄 Play again with new questions</button></div>
             </div>
@@ -1807,12 +1836,12 @@ html.day-mode { --ac: #1f4d3a; --ac-btn: linear-gradient(135deg, #2f7050, #1f4d3
                     A free study planner for high school: assessments, grades with a final-exam calculator, spaced-repetition flashcards, notes, an AI Analyzer, focus timer, calendar, quiz arena and an educational game. All data stays on your own computer; use Backup and Restore to keep or move it.
                 </p>
                 <div class="pt-6 border-t border-slate-800 text-xs text-slate-400 font-semibold">
-                    © 2026 Academic Tracker — Daily Practice Hub. All Rights Reserved.
+                    © 2026 Academic Tracker — Daily Practice Hub. All Rights Reserved. Made by <a href="https://github.com/keeks999" target="_blank" rel="noopener" style="color:#a78bfa;font-weight:700">@keeks999</a>.
                 </div>
             </div>
         </section>
 
-        <div class="page-end">© 2026 Academic Tracker — Daily Practice Hub</div>
+        <div class="page-end">© 2026 Academic Tracker — Daily Practice Hub · Made by <a href="https://github.com/keeks999" target="_blank" rel="noopener" style="color:var(--accent);font-weight:700">@keeks999</a></div>
     </div>
 
     <!-- MODALS FOR ADDING ITEMS -->
@@ -1903,7 +1932,7 @@ html.day-mode { --ac: #1f4d3a; --ac-btn: linear-gradient(135deg, #2f7050, #1f4d3
         <div class="m-card max-w-md w-full space-y-4 max-h-[92vh] overflow-y-auto">
             <div>
                 <h3 class="sec-h3">Post a grade</h3>
-                <p class="m-sub">Enter your mark and what it was out of. It is converted to the IB 0–7 scale automatically.</p>
+                <p class="m-sub" id="mSubGrade">Enter your mark and what it was out of. It is converted automatically.</p>
             </div>
             <datalist id="gradeSubjects"></datalist>
             <input type="text" id="inputGradeSubj" list="gradeSubjects" autocomplete="off" placeholder="Subject (e.g., Biology)" class="fld w-full text-sm">
@@ -4497,7 +4526,7 @@ function renderAuth() {
         box.innerHTML = `<div class="in-auth">
             <h2 id="inAuthH">Create your account</h2>
             <p class="in-lead">Pick a username and a password. They are saved on this device only, so nobody else can open your hub on this browser without them.</p>
-            <div class="in-field"><label for="inUser">Username</label><input id="inUser" type="text" autocomplete="username" maxlength="24" placeholder="e.g. alex"></div>
+            <div class="in-field"><label for="inUser">Username</label><input id="inUser" type="text" autocomplete="username" maxlength="24" placeholder="Your name or username"></div>
             <div class="in-field"><label for="inPass">Password</label><input id="inPass" type="password" autocomplete="new-password" placeholder="At least 6 characters"></div>
             <div class="in-field"><label for="inPass2">Confirm password</label><input id="inPass2" type="password" autocomplete="new-password" placeholder="Type it again"></div>
             <div class="in-err" id="inErr" role="alert"></div>
@@ -4583,11 +4612,11 @@ function renderMetrics() {
         due3 = open.filter(a => getPriorityMeta(a.due).days <= 3).length;
         if (open[0]) nextTitle = open[0].title + ' · ' + getPriorityMeta(open[0].due).when;
         cards = state.cards.filter(c => cdIsDue(c)).length;
-        graded = state.grades.length; if (graded) avg = f2(ibAvg(state.grades));
+        graded = state.grades.length; if (graded) avg = gStr(fAvg(state.grades));
     } catch (e) {}
     box.innerHTML = `
         <div class="in-tile"><span class="k">Urgent</span><b>${due3}</b><small>${due3 === 1 ? 'assessment' : 'assessments'} within 3 days</small></div>
-        <div class="in-tile"><span class="k">IB average</span><b>${avg}${avg === '—' ? '' : ' <span style="font-size:.9rem;color:#6a766d">/ 7</span>'}</b><small>${graded ? graded + ' graded' : 'no grades yet'}</small></div>
+        <div class="in-tile"><span class="k">Average grade</span><b>${esc(avg)}</b><small>${graded ? graded + ' graded' : 'no grades yet'}</small></div>
         <div class="in-tile"><span class="k">Cards due</span><b>${cards}</b><small>flashcards today</small></div>
         <div class="in-tile"><span class="k">Next up</span><b style="font-size:1.05rem;padding-top:.4rem">${esc(nextTitle.split(' · ')[0])}</b><small>${esc(nextTitle.split(' · ')[1] || 'enjoy the quiet')}</small></div>`;
 }
@@ -4687,6 +4716,243 @@ window.addEventListener('DOMContentLoaded', () => setTimeout(() => document.quer
 // quiz: progress bar
 const _renderQuizCardOld = renderCurrentQuizCard;
 renderCurrentQuizCard = function () { _renderQuizCardOld(); const el = document.getElementById('quizProgress'); if (el && activeQuizList.length) el.style.width = Math.min(100, quizIdx / activeQuizList.length * 100) + '%'; };
+</script>
+
+
+<script>
+/* =====================================================================
+   GRADING SYSTEMS: IB (0-7), Letter, Percentage, AP (1-5) or your own scale.
+   Marks are always stored as score + out-of; the chosen system only changes how they are shown.
+   ===================================================================== */
+const LETTER_TABLE = [[97, 'A+', 4.0], [93, 'A', 4.0], [90, 'A-', 3.7], [87, 'B+', 3.3], [83, 'B', 3.0], [80, 'B-', 2.7], [77, 'C+', 2.3], [73, 'C', 2.0], [70, 'C-', 1.7], [67, 'D+', 1.3], [63, 'D', 1.0], [60, 'D-', 0.7], [0, 'F', 0]];
+const letterRow = pct => LETTER_TABLE.find(r => pct >= r[0] - 1e-9) || LETTER_TABLE[LETTER_TABLE.length - 1];
+const letterOf = pct => letterRow(pct)[1], gpaOf = pct => letterRow(pct)[2];
+const AP_CUTS = [0, 0.35, 0.5, 0.65, 0.8];
+function apFrom(f) { f = Math.max(0, Math.min(1, f)); if (f >= 0.8) return 5; for (let i = 3; i >= 0; i--) if (f >= AP_CUTS[i]) return (i + 1) + (f - AP_CUTS[i]) / (AP_CUTS[i + 1] - AP_CUTS[i]); return 1; }
+function apTo(v) { v = Math.max(1, Math.min(5, v)); if (v >= 5) return 0.8; const i = Math.min(3, Math.floor(v) - 1); return AP_CUTS[i] + (v - (i + 1)) * (AP_CUTS[i + 1] - AP_CUTS[i]); }
+const clamp01 = x => Math.max(0, Math.min(1, x));
+const gSys = () => (state.grading && state.grading.sys) || 'ib';
+const gOther = () => (state.grading && state.grading.otherMax > 0) ? state.grading.otherMax : 10;
+const fOf = g => clamp01(gradeScore(g) / gradeMax(g));
+function fAvg(items) { let sw = 0, s = 0; items.forEach(g => { const w = gradeWeight(g); sw += w; s += fOf(g) * w; }); return sw ? s / sw : 0; }
+function gScale() {
+    const om = gOther();
+    return {
+        ib: { key: 'ib', name: 'IB', val: f => f * 7, inv: v => v / 7, str: v => f2(v) + ' / 7', yMin: 0, yMax: 7, ticks: [0, 1, 2, 3, 4, 5, 6, 7], tick: v => String(v), goal: [1, 7, 0.1], desc: 'on the IB scale, 0 to 7' },
+        percent: { key: 'percent', name: 'Percentage', val: f => f * 100, inv: v => v / 100, str: v => (Math.round(v * 10) / 10).toFixed(1) + '%', yMin: 0, yMax: 100, ticks: [0, 20, 40, 60, 80, 100], tick: v => v + '%', goal: [1, 100, 1], desc: 'as percentages' },
+        letter: { key: 'letter', name: 'Letter', val: f => f * 100, inv: v => v / 100, str: v => letterOf(v), yMin: 0, yMax: 100, ticks: [0, 60, 70, 80, 90, 100], tick: v => ({ 0: 'F', 60: 'D', 70: 'C', 80: 'B', 90: 'A', 100: '' }[v]), goal: null, desc: 'as letter grades' },
+        ap: { key: 'ap', name: 'AP', val: apFrom, inv: apTo, str: v => f2(v) + ' / 5', yMin: 1, yMax: 5, ticks: [1, 2, 3, 4, 5], tick: v => String(v), goal: [1, 5, 0.1], desc: 'on the AP scale, 1 to 5 (an estimate, since AP cut-offs differ by exam)' },
+        other: { key: 'other', name: 'Custom', val: f => f * om, inv: v => v / om, str: v => f2(v) + ' / ' + fmtNum(om), yMin: 0, yMax: om, ticks: om <= 12 ? Array.from({ length: Math.floor(om) + 1 }, (_, i) => i) : [0, 0.25, 0.5, 0.75, 1].map(x => Math.round(x * om)), tick: v => String(v), goal: [0.1, om, 0.1], desc: 'on your own scale, 0 to ' + fmtNum(om) }
+    }[gSys()];
+}
+const gStr = f => { const s = gScale(); return s.str(s.val(f)); };
+function gHead(f) {
+    const k = gSys(), s = gScale(), v = s.val(f);
+    if (k === 'ib') return { main: f2(v), unit: '/ 7', sub: 'out of 7' };
+    if (k === 'percent') return { main: (Math.round(v * 10) / 10).toFixed(1) + '%', unit: '', sub: 'percent' };
+    if (k === 'letter') return { main: letterOf(v), unit: '', sub: gpaOf(v).toFixed(1) + ' GPA' };
+    if (k === 'ap') return { main: f2(v), unit: '/ 5', sub: 'out of 5' };
+    return { main: f2(v), unit: '/ ' + fmtNum(gOther()), sub: 'out of ' + fmtNum(gOther()) };
+}
+function gChip(f) {
+    const k = gSys(), v = gScale().val(f);
+    if (k === 'ib') return 'IB ' + ibRound(f * 7);
+    if (k === 'letter') return gpaOf(v).toFixed(1) + ' GPA';
+    if (k === 'ap') return 'AP ' + Math.round(v);
+    return ibWord(f * 7);
+}
+const gWord = f => ibWord(f * 7), gToneF = f => ibTone(f * 7);
+function gDelta(a, b) { const s = gScale(), d = Math.abs(s.val(a) - s.val(b)); return (gSys() === 'percent' || gSys() === 'letter') ? d.toFixed(1) + ' pts' : f2(d); }
+const gDec = () => (gScale().yMax - gScale().yMin > 20 ? 1 : 2);
+
+/* ---------- picking the system (title page) ---------- */
+function setGrading(sys, other) {
+    state.grading = { sys, otherMax: other > 0 ? other : gOther() };
+    persistState(); renderGradingPicker(); updateGradeHeader(); try { renderGrades(); renderMetrics(); } catch (e) {}
+}
+function setOtherMax(v) { const n = parseFloat(v); if (n > 0 && n <= 1000) setGrading('other', n); }
+function renderGradingPicker() {
+    const k = (state.grading && state.grading.sys) || '';
+    document.querySelectorAll('.gs-opt').forEach(b => b.classList.toggle('on', b.dataset.gs === k));
+    const row = document.getElementById('inOtherRow'); if (row) row.classList.toggle('hidden', k !== 'other');
+    const inp = document.getElementById('inOtherMax'); if (inp && k === 'other' && document.activeElement !== inp) inp.value = gOther();
+    const hint = document.getElementById('inGsHint'); if (hint) hint.textContent = k ? 'Your grades will be shown ' + gScale().desc + '.' : 'Pick one so your grades look the way your school shows them.';
+}
+function updateGradeHeader() {
+    const s = gScale(), el = document.getElementById('grSub');
+    if (el) el.textContent = 'Everything is shown ' + s.desc + '. Type your mark and what it was out of (28, 21, 100, 7…) and it converts for you.';
+    const gn = document.getElementById('grGoalNote'); if (gn) gn.textContent = gSys() === 'letter' ? 'pick a goal letter per subject' : 'set a goal per subject';
+    const ms = document.getElementById('mSubGrade'); if (ms) ms.textContent = 'Enter your mark and what it was out of. It is converted ' + s.desc + ' automatically.';
+}
+
+/* ---------- modal preview ---------- */
+function gradePreview() {
+    const box = document.getElementById('gradePreview'); if (!box) return;
+    const s = parseFloat(document.getElementById('inputGradeVal').value), m = parseFloat(document.getElementById('inputGradeMax').value);
+    if (isNaN(s) || isNaN(m) || m <= 0 || s < 0) { box.innerHTML = '<span class="m-sub">Enter your mark and the total to see your grade.</span>'; box.style.removeProperty('--t'); return; }
+    const f = clamp01(s / m), h = gHead(f);
+    box.style.setProperty('--t', gToneF(f));
+    box.innerHTML = `<span>${fmtNum(s)} out of ${fmtNum(m)} →</span><b>${esc(h.main)}</b><span>${esc(h.unit)}</span><em>${esc(gChip(f))} · ${gWord(f)}</em>`;
+}
+
+/* ---------- hero + subject cards + list ---------- */
+function renderGradeHero() {
+    const box = document.getElementById('grHero'); if (!box) return;
+    if (!state.grades.length) { box.innerHTML = `<div class="gr-empty"><div class="ic">💎</div><div><b>No grades yet</b><p>Post your first grade and your overall average will appear here.</p></div><button class="btn-primary" onclick="openGradeModal()">+ Post a grade</button></div>`; return; }
+    const af = fAvg(state.grades), tone = gToneF(af), h = gHead(af), C = 2 * Math.PI * 54;
+    const groups = groupGradesBySubject().map(g => ({ name: g.name, f: fAvg(g.items) })), sorted = groups.slice().sort((a, b) => b.f - a.f);
+    const all = state.grades.map(fOf);
+    const tiles = groups.length > 1
+        ? `<div class="gr-tile"><span class="k">Strongest subject</span><b>${esc(sorted[0].name)}</b><small>${esc(gStr(sorted[0].f))}</small></div><div class="gr-tile"><span class="k">Needs the most focus</span><b>${esc(sorted[sorted.length - 1].name)}</b><small>${esc(gStr(sorted[sorted.length - 1].f))}</small></div>`
+        : `<div class="gr-tile"><span class="k">Highest mark</span><b>${esc(gStr(Math.max(...all)))}</b><small>your best so far</small></div><div class="gr-tile"><span class="k">Lowest mark</span><b>${esc(gStr(Math.min(...all)))}</b><small>room to grow</small></div>`;
+    box.innerHTML = `<div class="gr-hero" style="--t:${tone}">
+        <div class="gr-ring"><svg viewBox="0 0 140 140" aria-hidden="true"><circle cx="70" cy="70" r="54" class="trk"/><circle cx="70" cy="70" r="54" class="val" stroke-dasharray="${(af * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 70 70)"/></svg><div class="gr-ring-txt"><b>${esc(h.main)}</b><span>${esc(h.sub)}</span></div></div>
+        <div class="gr-hero-info"><span class="gr-kicker">Overall average</span><h3>${gWord(af)}</h3><p>Across ${plural(state.grades.length, 'assessment')} in ${plural(groups.length, 'subject')}. That is <b>${esc(gStr(af))}</b>${gSys() === 'ib' ? ', which rounds to an IB <b>' + ibRound(af * 7) + '</b>' : ''}.</p>${pips(af * 7)}</div>
+        <div class="gr-tiles"><div class="gr-tile"><span class="k">Assessments graded</span><b>${state.grades.length}</b><small>${plural(groups.length, 'subject')}</small></div>${tiles}</div>
+    </div>`;
+}
+function renderSubjectGrades() {
+    const box = document.getElementById('subjectGradesGrid'); if (!box) return;
+    if (!state.grades.length) { box.innerHTML = ''; return; }
+    box.innerHTML = groupGradesBySubject().map((grp, i) => {
+        const af = fAvg(grp.items), fs = grp.items.map(fOf), h = gHead(af);
+        return `<div class="gr-subj" style="--c:${subjectColor(grp.name, i)};--t:${gToneF(af)}">
+            <div class="top"><span class="nm"><span class="ic">${esc(subjIcon(grp.name))}</span>${esc(grp.name)}</span><span class="gr-chip">${esc(gChip(af))}</span></div>
+            <div class="avg"><b>${esc(h.main)}</b><small>${esc(h.unit)}</small></div>
+            ${pips(af * 7)}
+            <div class="meta"><span>${plural(grp.items.length, 'exam')}</span><span>Low ${esc(gStr(Math.min(...fs)))}</span><span>High ${esc(gStr(Math.max(...fs)))}</span></div>
+            <div class="word">${gWord(af)}${gSys() === 'letter' ? ' · ' + esc(h.sub) : ''}</div>
+        </div>`;
+    }).join('');
+}
+function groupedGradesHtml() {
+    return groupGradesBySubject().map((grp, i) => `
+        <div class="gr-group" style="--c:${subjectColor(grp.name, i)}">
+            <div class="gr-group-h"><span class="dot"></span>${esc(grp.name)}<em>${esc(gStr(fAvg(grp.items)))} average</em></div>
+            ${grp.items.slice().sort((a, b) => (b.date || '').localeCompare(a.date || '')).map(g => { const f = fOf(g), h = gHead(f); return `
+            <div class="gr-row" style="--t:${gToneF(f)}">
+                <div class="nm"><b>${esc(g.name)}</b><small>${gradeDateLabel(g.date)}${gradeWeight(g) !== 1 ? ' · counts ×' + fmtNum(gradeWeight(g)) : ''}</small></div>
+                <div class="raw">${fmtNum(gradeScore(g))} <i>out of</i> ${fmtNum(gradeMax(g))}</div>
+                <div class="ib"><b>${esc(h.main)}</b><small>${esc(h.unit)}</small></div>
+                <button class="x" onclick="deleteGrade(${g.id})" title="Remove grade" aria-label="Remove grade">✕</button>
+            </div>`; }).join('')}
+        </div>`).join('');
+}
+
+/* ---------- goals ---------- */
+const goalFracOf = name => { const gf = (state.goalFrac || {})[name]; if (gf > 0 && gf <= 1) return gf; const old = (state.targets || {})[name]; return (old >= 1 && old <= 7) ? old / 7 : null; };
+function tgSetTarget(name, v) {
+    state.goalFrac = state.goalFrac || {}; let f = null;
+    if (gSys() === 'letter') { const r = LETTER_TABLE.find(x => x[1] === v); f = r ? Math.max(0.01, r[0] / 100) : null; }
+    else { const n = parseFloat(v), g = gScale().goal; if (g && n >= g[0] && n <= g[1]) f = clamp01(gScale().inv(n)); }
+    if (f) { state.goalFrac[name] = f; if (state.targets) delete state.targets[name]; } else { delete state.goalFrac[name]; if (state.targets) delete state.targets[name]; }
+    saveState();
+}
+function tgClear(name) { if (state.goalFrac) delete state.goalFrac[name]; if (state.targets) delete state.targets[name]; saveState(); }
+function tgCalc(name) {
+    const items = (groupGradesBySubject().find(g => g.name === name) || { items: [] }).items, tF = goalFracOf(name), k = tgKey(name), el = document.getElementById(k + '_out'); if (!el) return;
+    const mx = parseFloat(document.getElementById(k + '_max').value), w = parseFloat(document.getElementById(k + '_w').value);
+    if (!tF) { el.innerHTML = '<span class="muted">Set a goal to see what you need.</span>'; return; }
+    if (!(mx > 0) || !(w > 0)) { el.innerHTML = '<span class="muted">Enter what the next exam is out of and how much it counts.</span>'; return; }
+    if (!items.length) { el.innerHTML = `No grades yet. To reach <b>${esc(gStr(tF))}</b>, aim for about <b>${fmtNum(tF * mx)} out of ${fmtNum(mx)}</b> on your first exam.`; return; }
+    const W = items.reduce((a, g) => a + gradeWeight(g), 0), P = fAvg(items), need = (tF * (W + w) - P * W) / w, ceil = (P * W + w) / (W + w);
+    if (need <= 0) el.innerHTML = `<span class="ok">✓ You are already safe.</span> Even a 0 keeps you at about <b>${esc(gStr((P * W) / (W + w)))}</b>, above your goal of ${esc(gStr(tF))}.`;
+    else if (need > 1) el.innerHTML = `<span class="warn">Not reachable with this one exam.</span> Full marks lifts you to <b>${esc(gStr(ceil))}</b>. Plan for several exams, or lower the goal.`;
+    else el.innerHTML = `You need <b class="need">${esc(gStr(need))}</b> on this exam, about <b>${fmtNum(need * mx)} out of ${fmtNum(mx)}</b>, to reach ${esc(gStr(tF))}.${need >= 0.9 ? ' <span class="muted">That is a stretch, so start revising early.</span>' : ''}`;
+}
+function renderTargets() {
+    const body = document.getElementById('targetsBody'); if (!body) return;
+    const names = tgSubjectNames(), sc = gScale();
+    if (!names.length) { body.innerHTML = '<div class="gr-blank">Add subjects or post a grade, then set a goal for each one here.</div>'; return; }
+    body.innerHTML = '<div class="gr-goals">' + names.map((name, i) => {
+        const items = (groupGradesBySubject().find(g => g.name === name) || { items: [] }).items, P = items.length ? fAvg(items) : null, tF = goalFracOf(name), k = tgKey(name), col = subjectColor(name, i);
+        const last = items[items.length - 1], defMax = last ? gradeMax(last) : 21, defW = items.length ? Math.round(items.reduce((a, g) => a + gradeWeight(g), 0) / items.length * 100) / 100 : 1;
+        const q = name.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;'), gap = P !== null && tF ? P - tF : null;
+        const goalInput = gSys() === 'letter'
+            ? `<select onchange="tgSetTarget('${q}', this.value)" class="fld sm"><option value="">—</option>${LETTER_TABLE.map(r => `<option value="${r[1]}" ${tF && Math.abs(tF - r[0] / 100) < 1e-6 ? 'selected' : ''}>${r[1]}</option>`).join('')}</select>`
+            : `<input type="number" min="${sc.goal[0]}" max="${sc.goal[1]}" step="${sc.goal[2]}" value="${tF ? Math.round(sc.val(tF) * 100) / 100 : ''}" placeholder="goal" onchange="tgSetTarget('${q}', this.value)" class="fld sm">`;
+        return `<div class="gr-goal" style="--c:${col}">
+            <div class="gh"><b><span class="ic">${esc(subjIcon(name))}</span>${esc(name)}</b><span class="now">${P !== null ? 'Now <b>' + esc(gStr(P)) + '</b>' : 'No grades yet'}</span></div>
+            <div class="track"><div class="fill" style="width:${P !== null ? P * 100 : 0}%"></div>${tF ? `<div class="mark" title="Goal ${esc(gStr(tF))}" style="left:${tF * 100}%"></div>` : ''}</div>
+            <div class="row"><label>Goal</label>${goalInput}
+              ${tF && gap !== null ? `<span class="${gap >= 0 ? 'ok' : 'warn'}">${gap >= 0 ? '✓ ' + gDelta(P, tF) + ' above goal' : gDelta(P, tF) + ' to go'}</span><button class="lnk" onclick="tgClear('${q}')">clear</button>` : ''}</div>
+            <div class="row"><span>Next exam is out of</span><input id="${k}_max" type="number" min="1" value="${defMax}" oninput="tgCalc('${q}')" class="fld sm"><span>and counts ×</span><input id="${k}_w" type="number" min="0.1" step="0.1" value="${defW}" oninput="tgCalc('${q}')" class="fld sm"></div>
+            <div id="${k}_out" class="out"></div></div>`;
+    }).join('') + '</div>';
+    names.forEach(tgCalc);
+}
+
+/* ---------- trends ---------- */
+function renderTrends() {
+    const body = document.getElementById('trendsBody'); if (!body) return;
+    const sc = gScale();
+    const groups = groupGradesBySubject().map((g, i) => ({ name: g.name, color: subjectColor(g.name, i), items: g.items.filter(x => x.date).sort((a, b) => a.date.localeCompare(b.date)) }));
+    const dated = groups.reduce((n, g) => n + g.items.length, 0), undated = state.grades.length - dated;
+    if (!dated) { body.innerHTML = `<div class="gr-blank">No dated grades yet. Post a grade with the exam date and your trends will appear here.${undated ? ' (Older grades without a date are not shown.)' : ''}</div>`; trendPts = []; return; }
+    if (trendFilter !== 'all' && !groups.some(g => g.name === trendFilter && g.items.length)) trendFilter = 'all';
+    const shown = groups.filter(g => g.items.length && (trendFilter === 'all' || g.name === trendFilter));
+    const q = s => esc(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const chip = (v, label, color) => `<button onclick="setTrendFilter('${q(v)}')" class="gr-fchip ${trendFilter === v ? 'on' : ''}" style="--c:${color}">${esc(label)}</button>`;
+    const modeBtn = (m, label) => `<button onclick="setTrendMode('${m}')" class="gr-fchip ${trendMode === m ? 'on' : ''}" style="--c:var(--accent)">${label}</button>`;
+    const range = sc.yMax - sc.yMin, dec = gDec(), unitTxt = (gSys() === 'percent' || gSys() === 'letter') ? ' pts' : '';
+    const summary = shown.map(g => {
+        let txt = 'Add another exam to see a trend.', arrow = '•', cls = 'flat';
+        if (g.items.length >= 2) {
+            const xs = g.items.map(x => new Date(x.date + 'T00:00:00').getTime() / 86400000), ys = g.items.map(x => sc.val(fOf(x))), n = xs.length, mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n;
+            let num = 0, den = 0; xs.forEach((x, i) => { num += (x - mx) * (ys[i] - my); den += (x - mx) * (x - mx); });
+            const slope = den ? num / den * 30 : 0, diff = ys[n - 1] - ys[0], sg = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(dec) + unitTxt;
+            if (Math.abs(slope) < range * 0.015) { arrow = '▬'; txt = `Holding steady (${sg(diff)} since your first exam)`; }
+            else if (slope > 0) { arrow = '▲'; cls = 'up'; txt = `Improving: about ${sg(slope)} per month (${sg(diff)} since your first exam)`; }
+            else { arrow = '▼'; cls = 'down'; txt = `Slipping: about ${sg(slope)} per month (${sg(diff)} since your first exam)`; }
+        }
+        return `<div class="gr-trend-row"><div class="l"><span class="dot" style="background:${g.color}"></span><b>${esc(g.name)}</b></div><div class="r"><span class="${cls}">${arrow} ${txt}</span><small>Average ${esc(gStr(fAvg(g.items)))} · ${plural(g.items.length, 'exam')}</small></div></div>`;
+    }).join('');
+    body.innerHTML = `<div class="gr-filters"><div>${chip('all', 'All subjects', 'var(--accent)')}${groups.filter(g => g.items.length).map(g => chip(g.name, g.name, g.color)).join('')}</div><div>${modeBtn('scores', 'Exam scores')}${modeBtn('avg', 'Running average')}</div></div>
+        <div class="relative"><canvas id="trendCanvas" style="width:100%;height:300px;display:block"></canvas><div id="trendTip" class="hidden"></div></div>
+        <div class="gr-note">Each dot is one exam. A bigger dot means it counts for more.${undated ? ` ${plural(undated, 'older grade')} without a date ${undated === 1 ? 'is' : 'are'} not shown.` : ''}</div>
+        <div class="gr-trend-list">${summary}</div>`;
+    drawTrendChart(shown);
+}
+function drawTrendChart(shown) {
+    const cv = document.getElementById('trendCanvas'); if (!cv) return;
+    const sc = gScale(), dpr = Math.min(window.devicePixelRatio || 1, 2), W = cv.clientWidth || 600, H = 300; cv.width = W * dpr; cv.height = H * dpr;
+    const g = cv.getContext('2d'); g.scale(dpr, dpr); g.clearRect(0, 0, W, H);
+    const day = d => new Date(d + 'T00:00:00').getTime() / 86400000;
+    const all = shown.flatMap(s => s.items); let x0 = Math.min(...all.map(i => day(i.date))), x1 = Math.max(...all.map(i => day(i.date)));
+    if (x1 - x0 < 1) { x0 -= 3; x1 += 3; } else { const padD = (x1 - x0) * 0.06; x0 -= padD; x1 += padD; }
+    const L = 40, R = 16, T = 14, B = 30, X = d => L + (W - L - R) * (d - x0) / (x1 - x0), Y = v => T + (H - T - B) * (1 - (Math.min(sc.yMax, Math.max(sc.yMin, v)) - sc.yMin) / (sc.yMax - sc.yMin));
+    const light = document.documentElement.classList.contains('day-mode'), tx = light ? '#5b695f' : '#93a0b7', gridc = light ? 'rgba(31,77,58,.12)' : 'rgba(148,163,184,.12)', ring = light ? '#f9f3e7' : '#121a2c';
+    g.font = '11px "Plus Jakarta Sans", sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'right';
+    sc.ticks.forEach(v => { g.strokeStyle = gridc; g.lineWidth = 1; g.beginPath(); g.moveTo(L, Y(v)); g.lineTo(W - R, Y(v)); g.stroke(); g.fillStyle = tx; g.fillText(sc.tick(v), L - 8, Y(v)); });
+    g.textAlign = 'center'; g.textBaseline = 'top';
+    for (let i = 0; i <= 5; i++) { const d = x0 + (x1 - x0) * i / 5; g.fillStyle = tx; g.fillText(new Date(d * 86400000 + 43200000).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), X(d), H - B + 9); }
+    trendPts = [];
+    const maxW = Math.max(...all.map(gradeWeight)), minW = Math.min(...all.map(gradeWeight));
+    shown.forEach(s => {
+        let pts;
+        if (trendMode === 'avg') { const acc = []; pts = s.items.map(it => { acc.push(it); const f = fAvg(acc); return { it, x: X(day(it.date)), f, p: sc.val(f) }; }); }
+        else pts = s.items.map(it => { const f = fOf(it); return { it, x: X(day(it.date)), f, p: sc.val(f) }; });
+        g.strokeStyle = s.color; g.lineWidth = 2.5; g.lineJoin = 'round'; g.lineCap = 'round'; g.beginPath(); pts.forEach((q, i) => { const y = Y(q.p); i ? g.lineTo(q.x, y) : g.moveTo(q.x, y); }); g.stroke();
+        pts.forEach(q => { const w = gradeWeight(q.it), r = maxW === minW ? 5.5 : 4 + 5 * (w - minW) / (maxW - minW), y = Y(q.p); g.fillStyle = s.color; g.beginPath(); g.arc(q.x, y, r, 0, 7); g.fill(); g.strokeStyle = ring; g.lineWidth = 2; g.stroke(); trendPts.push({ x: q.x, y, r, s, it: q.it, f: q.f }); });
+    });
+    cv.onmousemove = ev => {
+        const rc = cv.getBoundingClientRect(), mx = ev.clientX - rc.left, my = ev.clientY - rc.top; let best = null, bd = 1e9;
+        trendPts.forEach(q => { const d = Math.hypot(q.x - mx, q.y - my); if (d < bd) { bd = d; best = q; } });
+        const tip = document.getElementById('trendTip'); if (!tip) return;
+        if (best && bd < best.r + 10) {
+            const it = best.it;
+            tip.innerHTML = `<b style="color:${best.s.color}">${esc(best.s.name)}</b><br>${esc(it.name)}<br>${fmtNum(gradeScore(it))} out of ${fmtNum(gradeMax(it))} → <b>${esc(gStr(fOf(it)))}</b><br><span class="muted">${gradeDateLabel(it.date)}${gradeWeight(it) !== 1 ? ' · counts ×' + fmtNum(gradeWeight(it)) : ''}</span>${trendMode === 'avg' ? `<br>Running average: ${esc(gStr(best.f))}` : ''}`;
+            tip.classList.remove('hidden'); tip.style.left = Math.min(mx + 14, rc.width - 235) + 'px'; tip.style.top = Math.max(0, my - 20) + 'px';
+        } else tip.classList.add('hidden');
+    };
+    cv.onmouseleave = () => { const tip = document.getElementById('trendTip'); if (tip) tip.classList.add('hidden'); };
+}
+function renderGrades() {
+    updateGradeHeader(); renderGradeHero(); renderSubjectGrades(); renderTrends(); renderTargets();
+    const gList = document.getElementById('gradesListContainer'); if (!gList) return;
+    gList.innerHTML = state.grades.length ? groupedGradesHtml() : '<div class="gr-blank">No grades recorded yet. Click “Post a grade” to start.</div>';
+}
+window.addEventListener('DOMContentLoaded', () => setTimeout(() => { renderGradingPicker(); updateGradeHeader(); }, 0));
 </script>
 
     <!-- ON-SCREEN REMINDER POP-UP -->
