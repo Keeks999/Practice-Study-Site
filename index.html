@@ -5667,7 +5667,7 @@ const GNT = (() => {
 
     G.home = () => {
         show(`<div class="gnt-home">
-            <div class="gnt-hero"><div class="gnt-kicker">✦ ENTER IF YOU DARE ✦</div><h2>Choose your trial</h2><p>Each trial is timed. Pick a game, pick how you want to be timed, and prove yourself.</p></div>
+            <div class="gnt-hero"><div class="gnt-kicker">✦ FIVE TRIALS AWAIT ✦</div><h2>Choose your trial</h2><p>Each trial is timed. Pick a game, pick how you want to be timed, and prove yourself.</p></div>
             <div class="gnt-cards">${G.order.map((id, i) => { const g = G.games[id]; return `<button type="button" class="gnt-card" data-a="setup" data-g="${id}"><span class="gnt-roman">${['I', 'II', 'III', 'IV', 'V'][i]}</span><span class="gnt-cic">${g.icon}</span><b>${g.title}</b><small>${g.tag}</small><p>${g.blurb}</p><span class="gnt-go">Enter the trial →</span></button>`; }).join('')}</div>
         </div>`);
         snd.play('click');
